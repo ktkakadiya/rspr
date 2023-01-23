@@ -1961,7 +1961,7 @@ TODO:
 				//gene_trees[i]->print_subtree();
 			}
 			add_transfers(&transfer_counts, super_tree, &gene_trees);
-//#ifdef DEBUG_LGT
+#ifdef DEBUG_LGT
 			for(int i = 0; i < num_nodes; i++) {
 				for(int j = 0; j < num_nodes; j++) {
 					if (transfer_counts[i][j] > 0){
@@ -1969,7 +1969,7 @@ TODO:
 					}
 				}
 			}
-//#endif
+#endif
 
 			if (LGT_GROUPS != "") {
 				ifstream lgt_group_file;
