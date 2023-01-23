@@ -216,6 +216,7 @@ bool LOWER_BOUND = false;
 bool REDUCE_ONLY = false;
 bool PRINT_ROOTED_TREES = false;
 bool SHOW_MOVES = false;
+bool SHOW_LGT_EVENTS = false;
 bool SEQUENCE = false;
 bool DEBUG_REVERSE = false;
 bool RANDOM_SPR = false;
@@ -747,6 +748,9 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(arg, "-show_moves") == 0) {
 			SHOW_MOVES = true;
 		}
+		else if (strcmp(arg, "-show_lgt_events") == 0) {
+			SHOW_LGT_EVENTS = true;
+		}
 		else if (strcmp(arg, "-sequence") == 0) {
 			SEQUENCE = true;
 		}
@@ -914,6 +918,14 @@ int main(int argc, char *argv[]) {
 			T1->labels_to_numbers(&label_map, &reverse_label_map);
 			T2->labels_to_numbers(&label_map, &reverse_label_map);
 
+			if (SHOW_LGT_EVENTS) {
+				//cout << T1->str_subtree() << endl;
+				//cout << T2->str_subtree() << endl;
+				get_lgt_edges(T1, T2);
+				T1->delete_tree();
+				T2->delete_tree();
+				return 0;
+			}
 
 			if (SHOW_MOVES) {
 				//cout << T1->str_subtree() << endl;

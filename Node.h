@@ -96,6 +96,7 @@ class Node {
 	Node *contracted_rc;
 	bool contracted;
 	bool edge_protected;
+	bool edge_protected_forcefully;
 	int max_merge_depth;
 	bool allow_sibling;
 	int lost_children;
@@ -139,6 +140,7 @@ class Node {
 		this->contracted_rc = NULL;
 		this->contracted = false;
 		this->edge_protected = false;
+		this->edge_protected_forcefully = false;
 		this->allow_sibling = true;
 		this->lost_children = 0;
 		this->max_merge_depth = -1;
@@ -201,6 +203,7 @@ class Node {
 
 #endif
 		this->edge_protected = n.edge_protected;
+		this->edge_protected_forcefully = n.edge_protected_forcefully;
 		this->allow_sibling = n.allow_sibling;
 		this->lost_children = n.lost_children;
 		this->max_merge_depth = n.max_merge_depth;
@@ -264,6 +267,7 @@ class Node {
 		this->contracted = n.contracted;
 #endif
 		this->edge_protected = n.edge_protected;
+		this->edge_protected_forcefully = n.edge_protected_forcefully;
 		this->allow_sibling = n.allow_sibling;
 		this->lost_children = n.lost_children;
 		this->max_merge_depth = n.max_merge_depth;
@@ -326,6 +330,7 @@ class Node {
 
 #endif
 		this->edge_protected = n.edge_protected;
+		this->edge_protected_forcefully = n.edge_protected_forcefully;
 		this->allow_sibling = n.allow_sibling;
 		this->lost_children = n.lost_children;
 		this->max_merge_depth = n.max_merge_depth;
@@ -595,7 +600,9 @@ class Node {
 	}
 
 	void unprotect_edge() {
-		edge_protected = false;
+		if(!is_protected_forcefully()){
+			edge_protected = false;
+		}
 	}
 
 	void unprotect_subtree() {
@@ -604,6 +611,20 @@ class Node {
 		for(c = children.begin(); c != children.end(); c++) {
 			(*c)->unprotect_edge();
 		}
+	}
+
+	bool is_protected_forcefully() {
+		return edge_protected_forcefully;
+	}
+
+	void protect_edge_forcefully() {
+		edge_protected = true;
+		edge_protected_forcefully = true;
+	}
+
+	void unprotect_edge_forcefully() {
+		edge_protected = false;
+		edge_protected_forcefully = false;
 	}
 
 	void protect_supported_edges() {

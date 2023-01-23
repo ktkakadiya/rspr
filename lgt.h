@@ -239,6 +239,16 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 		// do we want to check that the move is valid here?
 	}
 
+	cout << "LGT events" << endl;
+	int num_nodes = transfer_counts->size();
+	for(int i = 0; i < num_nodes; i++) {
+		for(int j = 0; j < num_nodes; j++) {
+			if ((*transfer_counts)[i][j] > 0){
+			cout << i << " - " << j << endl;
+			}
+		}
+	}
+	
 	//Print transfer map
 	if(LGT_MAINTAIN_LIST){
 		cout << "Transfer map" << endl;
@@ -596,7 +606,7 @@ bool is_subset(vector<int>& A, vector<int>& B)
   return true;
 }
 
-void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<Node *> nodes){
+void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<Node *> *nodes){
 	if(cur_node == NULL){
 		return;
 	}
@@ -604,29 +614,33 @@ void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<N
 	list<Node *> children = cur_node->get_children();
 	list<Node *>::iterator c;
 	for(c = children.begin(); c != children.end(); c++) {
-		(*c)->protect_edge();
-		if(distance < rSPR_branch_and_bound_simple_clustering(T1, T2)){
-			nodes.push_back(cur_node);
+		(*c)->protect_edge_forcefully();
+		int dist = rSPR_branch_and_bound_simple_clustering(T1, T2);
+		cout << "Cur node " << cur_node->get_preorder_number() << " - Children " << (*c)->get_preorder_number() << " - Distance " << dist << endl;
+		if(distance < dist){
+			nodes->push_back(cur_node);
+			cout << "Adding node" << endl;
 		}
-		(*c)->unprotect_edge();
+		(*c)->unprotect_edge_forcefully();
 		get_lgt_edges_hlpr(T1, T2, *c, distance, nodes);		
 	}
 }
 
 void get_lgt_edges(Node *T1, Node *T2){
 	list<Node *> nodes;
-	Node *cur_node = T1;
-	T1->unprotect_subtree();
-	T2->unprotect_subtree();
-
+	Node *cur_node = T2;
+	
 	int distance = rSPR_branch_and_bound_simple_clustering(T1, T2);
-	get_lgt_edges_hlpr(T1, T2, cur_node, distance, nodes);
+	cout << "Initial distance : " << distance << endl;	
+	get_lgt_edges_hlpr(T1, T2, cur_node, distance, &nodes);
 
 	cout << "LGT edge list " << endl;
 	list<Node *>::iterator c;
 	for(c = nodes.begin(); c != nodes.end(); c++) {
 		cout << (*c)->parent()->get_preorder_number() << " - " << (*c)->get_preorder_number() << endl;
 	}
+
+	cout << "Done" << endl;
 }
 
 //IMP
@@ -638,6 +652,10 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 	T2->edge_preorder_interval();
 	//T1->print_preorder_number();
 	int num_nodes = T1->size();
+
+	//Get lgt edges
+	get_lgt_edges(T1, T2);
+	
 	//cout << "Num nodes " << num_nodes << endl;
 	int distance = rSPR_branch_and_bound_simple_clustering(T1, T2);
 	int current_distance = distance;
@@ -834,7 +852,6 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 		cout << "WARNING: final tree does not match T2" << endl;
 	}
 
-	get_lgt_edges(T1, T2);
 	return;
 }
 
