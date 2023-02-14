@@ -31,7 +31,7 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************/
 
 #define RSPR
-#define DEBUG 1
+//#define DEBUG 1
 //#define DEBUG_CONTRACTED 1
 //#define DEBUG_APPROX 1
 //#define DEBUG_CLUSTERS 1
@@ -3980,19 +3980,16 @@ cout << "  ";
 			if (CUT_ONE_B) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL && !cut_b_only)
-					cout << "CUT_ONE_B" << endl;
 					cut_b_only=true;
 					cob = true;
 			}
 			else if (CUT_ONE_AB) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL)
-					cout << "CUT_ONE_AB" << endl;
 					cut_ab_only=true;
 			}
 			if (CUT_TWO_B && !cut_b_only && T1_ac->parent() != NULL) {
 				Node *T1_s = T1_ac->get_sibling();
-					cout << "CUT_TWO_B" << endl;
 				if (T1_s->is_leaf()) {
 					Node *T2_l = T2_a->parent()->parent();
 					// Note: is this too harsh? If T2_l is nonbinary then can we do cut_b_only_if_not_a_or_c ?
@@ -4002,13 +3999,11 @@ cout << "  ";
 										&& T2_c->parent()->get_children().size() <= 2)
 									|| T1_s->get_twin()->is_protected())) {
 							if (T2_l->get_sibling() == T1_s->get_twin()) {
-					cout << "CUT_TWO_B 1" << endl;
 								cut_b_only=true;
 							}
 							else if (T2_l->parent() == NULL &&
 									(T2->contains_rho() ||
 									 T2->get_component(0) != T2_l)) {
-					cout << "CUT_TWO_B 2" << endl;
 								cut_b_only_if_not_a_or_c=true;
 							}
 						}
@@ -4019,13 +4014,11 @@ cout << "  ";
 										&& T2_l->get_children().size() <= 2)
 									|| T1_s->get_twin()->is_protected())) {
 							if (T2_l->get_sibling() == T1_s->get_twin()) {
-					cout << "CUT_TWO_B 3" << endl;
 								cut_b_only=true;
 							}
 							else if (T2_l->parent() == NULL &&
 									(T2->contains_rho() ||
 									 T2->get_component(0) != T2_l)) {
-					cout << "CUT_TWO_B 4" << endl;
 								cut_b_only_if_not_a_or_c=true;
 							}
 						}
@@ -4034,25 +4027,21 @@ cout << "  ";
 			}
 			if (REVERSE_CUT_ONE_B && (!cut_b_only || (cob && multi_node)) &&
 					T1_ac->parent() != NULL) {
-					cout << "REVERSE_CUT_ONE_B" << endl;
 				Node *T1_s = T1_ac->get_sibling();
 				if (T1_s->is_leaf()) {
 					Node *T2_s = T1_s->get_twin();
 					if (T2_s->parent() == T2_a->parent()) {
-					cout << "REVERSE_CUT_ONE_B 1" << endl;
 						cut_c_only=true;
 						cut_b_only=false;
 						cob=false;
 					}
 					else if (T2_s->parent() == T2_c->parent()) {
 						if (T2_c->parent()->get_children().size() <= 2) {
-					cout << "REVERSE_CUT_ONE_B 2" << endl;
 							cut_a_only=true;
 							cut_b_only=false;
 							cob=false;
 						}
 						else {
-					cout << "REVERSE_CUT_ONE_B 3" << endl;
 							cut_a_or_merge_ac=true;
 							cut_b_only=false;
 							cob=false;
@@ -4069,7 +4058,6 @@ cout << "  ";
 							&& T2_s->parent()->parent() == T2_a->parent()
 							&& T2_s->parent()->get_children().size() <= 2) {
 						//cut_c_only = true;
-					cout << "REVERSE_CUT_ONE_B 3_3" << endl;
 						cut_b_only=false;
 						cob=false;
 						if (!T2_a->is_protected()) {
@@ -4472,13 +4460,11 @@ cout << "  ";
 						}
 					}
 					if (cut_a_only) {
-						cout << "RSPR hlpr call 1" << endl;
 						answer_a =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 									singletons, false, AFs, protected_stack, num_ties, T1_c, T1_c->get_sibling());
 					}
 					else {
-						cout << "RSPR hlpr call 2" << endl;
 						answer_a =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 									singletons, false, AFs, protected_stack, num_ties);
@@ -4648,14 +4634,12 @@ cout << "  ";
 					}
 
 					if (CUT_ALL_B) {
-						cout << "RSPR hlpr call 3" << endl;
 						answer_b =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
 									sibling_pairs, singletons, true, AFs, protected_stack,
 									num_ties, T1_a, T1_c);
 					}
 					else {
-						cout << "RSPR hlpr call 4" << endl;
 						answer_b =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
 									sibling_pairs, singletons, false, AFs, protected_stack,
@@ -4764,13 +4748,11 @@ cout << "  ";
 					}
 						singletons->push_back(T2_c);
 						if (cut_c_only) {
-						cout << "RSPR hlpr call 5" << endl;
 							answer_c =
 								rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 										singletons, false, AFs, protected_stack, num_ties, T1_a, T1_a->get_sibling());
 						}
 						else {
-						cout << "RSPR hlpr call 6" << endl;
 							answer_c =
 								rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 										singletons, false, AFs, protected_stack, num_ties);
