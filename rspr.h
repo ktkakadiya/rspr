@@ -31,7 +31,7 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************/
 
 #define RSPR
-//#define DEBUG 1
+#define DEBUG 1
 //#define DEBUG_CONTRACTED 1
 //#define DEBUG_APPROX 1
 //#define DEBUG_CLUSTERS 1
@@ -39,7 +39,8 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 //#define DEBUG_UNDO 1
 //#define DEBUG_DEPTHS 1
 //#define DEBUG_CASE_COUNTER 1
-//#define MULT_PICK_LARGEST_GROUP 1
+//#define MUL-T_PICK_LARGEST_GROUP 1
+//#define DEBUG_LGT_EVENTS 1
 
 #include <cstdio>
 #include <cstdlib>
@@ -3640,9 +3641,13 @@ cout << "  ";
 	}
 	cout << endl;
 	#endif
-
 	UndoMachine um = UndoMachine();
-
+	#ifdef DEBUG_LGT_EVENTS
+		cout << "T1111" << endl;
+		T1->print_components();
+		cout << "T2222" << endl;
+		T2->print_components();
+	#endif
 
 	while(!singletons->empty() || !sibling_pairs->empty()) {
 		// Case 1 - Remove singletons
@@ -3729,7 +3734,7 @@ cout << "  ";
 				bool found = false;
 				set<SiblingPair>::iterator sp_i = sibling_pairs->begin();
 				// correct in case sibling pair involves previous
-		/*				if (sp_i != sibling_pairs->begin()) {
+				/*				if (sp_i != sibling_pairs->begin()) {
 					if (check_all_pairs)
 						sp_i = sibling_pairs->begin();
 					else
@@ -3975,16 +3980,19 @@ cout << "  ";
 			if (CUT_ONE_B) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL && !cut_b_only)
+					cout << "CUT_ONE_B" << endl;
 					cut_b_only=true;
 					cob = true;
 			}
 			else if (CUT_ONE_AB) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL)
+					cout << "CUT_ONE_AB" << endl;
 					cut_ab_only=true;
 			}
 			if (CUT_TWO_B && !cut_b_only && T1_ac->parent() != NULL) {
 				Node *T1_s = T1_ac->get_sibling();
+					cout << "CUT_TWO_B" << endl;
 				if (T1_s->is_leaf()) {
 					Node *T2_l = T2_a->parent()->parent();
 					// Note: is this too harsh? If T2_l is nonbinary then can we do cut_b_only_if_not_a_or_c ?
@@ -3994,11 +4002,13 @@ cout << "  ";
 										&& T2_c->parent()->get_children().size() <= 2)
 									|| T1_s->get_twin()->is_protected())) {
 							if (T2_l->get_sibling() == T1_s->get_twin()) {
+					cout << "CUT_TWO_B 1" << endl;
 								cut_b_only=true;
 							}
 							else if (T2_l->parent() == NULL &&
 									(T2->contains_rho() ||
 									 T2->get_component(0) != T2_l)) {
+					cout << "CUT_TWO_B 2" << endl;
 								cut_b_only_if_not_a_or_c=true;
 							}
 						}
@@ -4009,11 +4019,13 @@ cout << "  ";
 										&& T2_l->get_children().size() <= 2)
 									|| T1_s->get_twin()->is_protected())) {
 							if (T2_l->get_sibling() == T1_s->get_twin()) {
+					cout << "CUT_TWO_B 3" << endl;
 								cut_b_only=true;
 							}
 							else if (T2_l->parent() == NULL &&
 									(T2->contains_rho() ||
 									 T2->get_component(0) != T2_l)) {
+					cout << "CUT_TWO_B 4" << endl;
 								cut_b_only_if_not_a_or_c=true;
 							}
 						}
@@ -4022,21 +4034,25 @@ cout << "  ";
 			}
 			if (REVERSE_CUT_ONE_B && (!cut_b_only || (cob && multi_node)) &&
 					T1_ac->parent() != NULL) {
+					cout << "REVERSE_CUT_ONE_B" << endl;
 				Node *T1_s = T1_ac->get_sibling();
 				if (T1_s->is_leaf()) {
 					Node *T2_s = T1_s->get_twin();
 					if (T2_s->parent() == T2_a->parent()) {
+					cout << "REVERSE_CUT_ONE_B 1" << endl;
 						cut_c_only=true;
 						cut_b_only=false;
 						cob=false;
 					}
 					else if (T2_s->parent() == T2_c->parent()) {
 						if (T2_c->parent()->get_children().size() <= 2) {
+					cout << "REVERSE_CUT_ONE_B 2" << endl;
 							cut_a_only=true;
 							cut_b_only=false;
 							cob=false;
 						}
 						else {
+					cout << "REVERSE_CUT_ONE_B 3" << endl;
 							cut_a_or_merge_ac=true;
 							cut_b_only=false;
 							cob=false;
@@ -4053,6 +4069,7 @@ cout << "  ";
 							&& T2_s->parent()->parent() == T2_a->parent()
 							&& T2_s->parent()->get_children().size() <= 2) {
 						//cut_c_only = true;
+					cout << "REVERSE_CUT_ONE_B 3_3" << endl;
 						cut_b_only=false;
 						cob=false;
 						if (!T2_a->is_protected()) {
@@ -4455,11 +4472,13 @@ cout << "  ";
 						}
 					}
 					if (cut_a_only) {
+						cout << "RSPR hlpr call 1" << endl;
 						answer_a =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 									singletons, false, AFs, protected_stack, num_ties, T1_c, T1_c->get_sibling());
 					}
 					else {
+						cout << "RSPR hlpr call 2" << endl;
 						answer_a =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 									singletons, false, AFs, protected_stack, num_ties);
@@ -4629,12 +4648,14 @@ cout << "  ";
 					}
 
 					if (CUT_ALL_B) {
+						cout << "RSPR hlpr call 3" << endl;
 						answer_b =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
 									sibling_pairs, singletons, true, AFs, protected_stack,
 									num_ties, T1_a, T1_c);
 					}
 					else {
+						cout << "RSPR hlpr call 4" << endl;
 						answer_b =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
 									sibling_pairs, singletons, false, AFs, protected_stack,
@@ -4743,11 +4764,13 @@ cout << "  ";
 					}
 						singletons->push_back(T2_c);
 						if (cut_c_only) {
+						cout << "RSPR hlpr call 5" << endl;
 							answer_c =
 								rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 										singletons, false, AFs, protected_stack, num_ties, T1_a, T1_a->get_sibling());
 						}
 						else {
+						cout << "RSPR hlpr call 6" << endl;
 							answer_c =
 								rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
 										singletons, false, AFs, protected_stack, num_ties);
@@ -4999,7 +5022,6 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 	int num_clusters = F1.num_components();
 	int total_k = 0;
 
-
 	for(int i = 1; i < num_clusters; i++) {
 		if (i == num_clusters - 1) {
 			PREFER_RHO = false;
@@ -5067,6 +5089,11 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 //				Forest f1t = f1;
 				Forest f2t = Forest(f2);
 //				Forest f2t = f2;
+				
+				#ifdef DEBUG_LGT_EVENTS
+					f2t.print_protected_edge_list();
+				#endif
+
 				f1t.unsync();
 				f2t.unsync();
 				exact_spr = -1;
@@ -5091,7 +5118,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 					if (k > CLUSTER_MAX_SPR) {
 						f1t.swap(&f1a);
 						f2t.swap(&f2a);
-//						cout << "foo" << endl;
+						cout << "foo" << endl;
 					}
 					if (exact_spr >= 0) {
 						exact_spr += total_split_k;
@@ -5262,6 +5289,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 			F1.get_component(i)->contract(true);
 			F2.get_component(i)->contract(true);
 		}
+
 		if (verbose) {
 			F1.numbers_to_labels(reverse_label_map);
 			F2.numbers_to_labels(reverse_label_map);
@@ -6878,6 +6906,7 @@ bool is_nonbranching(Forest *T1, Forest *T2, Node *T1_a, Node *T1_c, Node *T2_a,
 		if (T2_a->parent()->parent() == T2_c->parent()
 			&& T2_c->parent() != NULL
 			&& T2_a->parent()->get_children().size() <= 2)
+			cout << "Non branching " << endl;
 			return true;
 	}
 	if (CUT_TWO_B && T1_a->parent()->parent() != NULL) {

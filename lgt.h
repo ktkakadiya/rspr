@@ -374,6 +374,14 @@ void add_transfers(list<transfer> *transfer_list, Forest *F1,
 	int start = 1;
 	if (MAF2->contains_rho())
 		start = 0;
+
+	cout << "MAF1 : ";
+	MAF1->print_components();
+	MAF1->print_components_preorder();
+	cout << "MAF2 : ";
+	MAF2->print_components();
+	MAF2->print_components_preorder();
+
 	for(int i = start; i < MAF2->num_components(); i++) {
 		Node *F2_source = MAF2->get_component(i);
 		Node *F1_source;
@@ -614,11 +622,15 @@ void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<N
 	list<Node *> children = cur_node->get_children();
 	list<Node *>::iterator c;
 	for(c = children.begin(); c != children.end(); c++) {
+		//T1->unprotect_tree();
+		//T2->unprotect_tree();
+
 		(*c)->protect_edge_forcefully();
 		int dist = rSPR_branch_and_bound_simple_clustering(T1, T2);
+
 		cout << "Cur node " << cur_node->get_preorder_number() << " - Children " << (*c)->get_preorder_number() << " - Distance " << dist << endl;
 		if(distance < dist){
-			nodes->push_back(cur_node);
+			nodes->push_back(*c);
 			cout << "Adding node" << endl;
 		}
 		(*c)->unprotect_edge_forcefully();
@@ -652,9 +664,6 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 	T2->edge_preorder_interval();
 	//T1->print_preorder_number();
 	int num_nodes = T1->size();
-
-	//Get lgt edges
-	get_lgt_edges(T1, T2);
 	
 	//cout << "Num nodes " << num_nodes << endl;
 	int distance = rSPR_branch_and_bound_simple_clustering(T1, T2);

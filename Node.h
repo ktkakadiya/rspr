@@ -597,11 +597,25 @@ class Node {
 
 	void protect_edge() {
 		edge_protected = true;
+		#ifdef DEBUG_LGT_EVENTS
+			cout << "Protecting edge " << this->get_preorder_number() << endl;
+			if(is_protected_forcefully()){
+				cout << "Already protected forcefully "<< this->get_preorder_number() << endl;
+			}
+		#endif
 	}
 
 	void unprotect_edge() {
+		#ifdef DEBUG_LGT_EVENTS
+			cout << "Unrotecting edge " << this->get_preorder_number() << endl;
+		#endif
 		if(!is_protected_forcefully()){
 			edge_protected = false;
+		}
+		else {
+			#ifdef DEBUG_LGT_EVENTS
+				cout << "Unprotection failed " << this->get_preorder_number() << endl;
+			#endif
 		}
 	}
 
@@ -613,18 +627,39 @@ class Node {
 		}
 	}
 
+	void unprotect_tree() {
+		unprotect_edge();
+		list<Node *>::iterator c;
+		for(c = children.begin(); c != children.end(); c++) {
+			(*c)->unprotect_tree();
+		}
+	}
+
 	bool is_protected_forcefully() {
 		return edge_protected_forcefully;
 	}
 
 	void protect_edge_forcefully() {
+		#ifdef DEBUG_LGT_EVENTS
+			cout << "Frocefully protecting edge " << this->get_preorder_number() << endl;
+		#endif
 		edge_protected = true;
 		edge_protected_forcefully = true;
 	}
 
 	void unprotect_edge_forcefully() {
-		edge_protected = false;
 		edge_protected_forcefully = false;
+		edge_protected = false;
+	}
+
+	void print_protected_edge_list_hlpr() {
+		if(is_protected_forcefully()){
+			cout << "Edge " << this->get_preorder_number() << " protected forcefully " << endl;
+		}
+		list<Node *>::iterator c;
+		for(c = children.begin(); c != children.end(); c++) {
+			(*c)->print_protected_edge_list_hlpr();
+		}
 	}
 
 	void protect_supported_edges() {

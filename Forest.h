@@ -178,6 +178,22 @@ class Forest {
 		f->cluster = c_temp;
 	}
 
+	void print_protected_edge_list(){
+		cout << "Protected edge list" << endl;
+		vector<Node *>::iterator it = components.begin();
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root == NULL)
+				cout << "!";
+			else if (root->is_leaf() && root->str() == "")
+				cout << "*";
+			else
+				root->print_protected_edge_list_hlpr();
+			cout << " ";
+		}
+		cout << "DONE" << endl;
+	}
+
 	// print the forest
 	void print_components() {
 		vector<Node *>::iterator it = components.begin();
