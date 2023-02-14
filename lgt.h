@@ -631,7 +631,7 @@ void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<N
 		cout << "Cur node " << cur_node->get_preorder_number() << " - Children " << (*c)->get_preorder_number() << " - Distance " << dist << endl;
 		if(distance < dist){
 			nodes->push_back(*c);
-			cout << "Adding node" << endl;
+			//cout << "Adding node" << endl;
 		}
 		(*c)->unprotect_edge_forcefully();
 		get_lgt_edges_hlpr(T1, T2, *c, distance, nodes);		
