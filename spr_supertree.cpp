@@ -1949,9 +1949,9 @@ TODO:
 			cout << "LGT Analysis" << endl;
 			super_tree->preorder_number();
 			super_tree->edge_preorder_interval();
-			super_tree->print_preorder_number();
+			//super_tree->print_preorder_number();
 			int num_nodes = super_tree->size();
-			cout << "Num nodes " << num_nodes << endl;
+			//cout << "Num nodes " << num_nodes << endl;
 			vector<vector<int> > transfer_counts =
 				vector<vector<int> >(num_nodes, vector<int>(num_nodes, 0));
 			//cout << "Gene trees " << gene_trees.size();
@@ -2169,7 +2169,7 @@ TODO:
 	int current_distance = 0;
 	if (NUM_ITERATIONS < 0)
 		NUM_ITERATIONS=labels.size(); 
-	cout << "Num Itr - " << NUM_ITERATIONS << endl;
+	//cout << "Num Itr - " << NUM_ITERATIONS << endl;
 	// SUPERTREE IMPROVEMENT STEP
 	for(int i = 0; i < NUM_ITERATIONS; i++) {
 /*		if (TABOO_SEARCH) {

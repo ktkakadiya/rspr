@@ -126,23 +126,35 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 	}
 }
 
+void print_transfer(Node *F1_source, Node *F1_target){
+	cout << F1_source->get_name() << "(" << F1_source->get_preorder_number() << ")" << " -> " 
+		 << F1_target->get_name() << "(" << F1_target->get_preorder_number() << ")" << endl;
+}
+
 void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 		Forest *F2, Forest *MAF1, Forest *MAF2) {
 	int start = 1;
 	if (MAF2->contains_rho())
 		start = 0;
+
+//#ifdef DEBUG
 	cout << "MAF1 : ";
 	MAF1->print_components();
-	MAF1->print_components_preorder();
+	//MAF1->print_components_preorder();
 	cout << "MAF2 : ";
 	MAF2->print_components();
-	MAF2->print_components_preorder();
+	//MAF2->print_components_preorder();
+//#endif
 
+	cout << "LGT events" << endl;
+	
 	map<string, list<list<int>>> map_transfer_sibling;			
 
 	for(int i = start; i < MAF2->num_components(); i++) {
 		Node *F2_source = MAF2->get_component(i);
-		cout << "F2 Source " << F2_source->get_name() << endl;
+		#ifdef DEBUG_LGT
+			cout << "F2 Source " << F2_source->get_name() << endl;
+		#endif
 		Node *F1_source;
 		Node *F1_target;
 		if (!map_transfer(F2_source, F1, MAF2, &F1_source,
@@ -170,6 +182,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 					}
 				}
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
+				print_transfer(F1_source_new, F1_target_new);
 			}
 			else if(LGT_MOVE_INDIVIDUAL_NODE){
 				list<Node*> lstSource = {F1_source_new};
@@ -191,6 +204,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 				for(c = lstSource.begin(); c != lstSource.end(); c++) {
 					for(ct = lstTarget.begin(); ct != lstTarget.end(); ct++) {
 						(*transfer_counts)[(*c)->get_preorder_number()][(*ct)->get_preorder_number()]++;
+						print_transfer(*c, *ct);
 					}
 				}
 			}
@@ -227,26 +241,19 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 								+ "_" + to_string(F1_target_new->get_preorder_number());
 				map_transfer_sibling[key] = {F1_source_sibling, F1_target_sibling};
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
+				print_transfer(F1_source_new, F1_target_new);
 			}
 			else{
 				(*transfer_counts)[F1_source->get_preorder_number()][F1_target->get_preorder_number()]++;
+				print_transfer(F1_source, F1_target);
 			}
 		}
 		else{
 			(*transfer_counts)[F1_source->get_preorder_number()][F1_target->get_preorder_number()]++;
+			print_transfer(F1_source, F1_target);
 		}
 
 		// do we want to check that the move is valid here?
-	}
-
-	cout << "LGT events" << endl;
-	int num_nodes = transfer_counts->size();
-	for(int i = 0; i < num_nodes; i++) {
-		for(int j = 0; j < num_nodes; j++) {
-			if ((*transfer_counts)[i][j] > 0){
-			cout << i << " - " << j << endl;
-			}
-		}
 	}
 	
 	//Print transfer map
@@ -279,6 +286,8 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 				// 4 groups
 
 }
+
+
 
 void print_transfers(Node *super_tree, vector<Node *> *gene_trees,
 		vector<string> *gene_tree_names, map<int, string> *reverse_label_map) {
@@ -518,9 +527,9 @@ bool map_transfer(Node *F2_source, Forest *F1, Forest *MAF2,
 	else
 		F1_target = F1->get_component(0);
 
-	cout << "F1 source " << F1_source->get_preorder_number() << " - " << F2_source->get_preorder_number() << endl;
-	cout << "F1 target " << F1_target->get_preorder_number() << " - " << F2_target->get_preorder_number() << endl;
 	#ifdef DEBUG_LGT			
+		cout << "F1 source " << F1_source->get_preorder_number() << " - " << F2_source->get_preorder_number() << endl;
+		cout << "F1 target " << F1_target->get_preorder_number() << " - " << F2_target->get_preorder_number() << endl;
 		cout << "\tF1s: " << F1_source->str_edge_pre_interval_subtree()
 			<< endl;
 		if (F2_target != NULL)
@@ -551,14 +560,18 @@ Node *find_best_target(Node *source, Forest *AF) {
 }
 
 Node* find_best_target(Node *source, Node *target, Node **best_target) {
-	cout << "Source : " << source->get_preorder_number() << endl;
-	cout << "Target : " << target->get_preorder_number() << " - " << target->get_edge_pre_start() << " - " << target->get_edge_pre_end()<< endl;
+	#ifdef DEBUG_LGT
+		cout << "Source : " << source->get_preorder_number() << endl;
+		cout << "Target : " << target->get_preorder_number() << " - " << target->get_edge_pre_start() << " - " << target->get_edge_pre_end()<< endl;
+	#endif
 	if (target->get_edge_pre_start() <= source->get_preorder_number()
 			&& target->get_edge_pre_end() >= source->get_preorder_number()
 			&& (*best_target == NULL || target->get_edge_pre_start() >
 					(*best_target)->get_edge_pre_start())) {
 		*best_target = target;
-		cout << "Best Target : " << (*best_target)->get_preorder_number() << " - " << (*best_target)->get_edge_pre_start() << " - " << (*best_target)->get_edge_pre_end()<< endl;
+		#ifdef DEBUG_LGT
+			cout << "Best Target : " << (*best_target)->get_preorder_number() << " - " << (*best_target)->get_edge_pre_start() << " - " << (*best_target)->get_edge_pre_end()<< endl;
+		#endif
 	}
 	list<Node *>::const_iterator c;
 	for(c = target->get_children().begin();
@@ -668,7 +681,7 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 	//cout << "Num nodes " << num_nodes << endl;
 	int distance = rSPR_branch_and_bound_simple_clustering(T1, T2);
 	int current_distance = distance;
-	cout << "Distance " << distance << endl;
+	//cout << "Distance " << distance << endl;
 	T1->numbers_to_labels(reverse_label_map);
 	cout << T1->str_subtree() << endl;
 	T1->labels_to_numbers(label_map, reverse_label_map);
