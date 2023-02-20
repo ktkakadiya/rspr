@@ -1960,7 +1960,7 @@ TODO:
 				gene_trees[i]->edge_preorder_interval();
 				//gene_trees[i]->print_subtree();
 			}
-			add_transfers(&transfer_counts, super_tree, &gene_trees);
+			add_transfers(&transfer_counts, super_tree, &gene_trees, &reverse_label_map);
 #ifdef DEBUG_LGT
 			for(int i = 0; i < num_nodes; i++) {
 				for(int j = 0; j < num_nodes; j++) {

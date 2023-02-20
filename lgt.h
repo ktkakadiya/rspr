@@ -83,6 +83,10 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		vector<Node *> *gene_trees);
 void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 		Forest *F2, Forest *MAF1, Forest *MAF2);
+void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
+		Forest *F2, Forest *MAF1, Forest *MAF2, map<int, string> *reverse_label_map);
+void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
+		vector<Node *> *gene_trees, map<int, string> *reverse_label_map);
 void print_transfers(Node *super_tree, Forest *F1, Forest *F2, Forest *MAF1,
 		Forest *MAF2, map<int, string> *reverse_label_map);
 void print_leaf_list(Node *F1_source, map<int, string> *reverse_label_map);
@@ -95,7 +99,7 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 
 
 void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
-		vector<Node *> *gene_trees) {
+		vector<Node *> *gene_trees, map<int, string> *reverse_label_map) {
 	#pragma omp parallel for
 	for(int i = 0; i < gene_trees->size(); i++) {
 		Forest *MAF1 = NULL;
@@ -117,7 +121,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 			cout << "\tF2: "; MAF2->print_components_with_edge_pre_interval();
 #endif
 			sync_af_twins(MAF1, MAF2);
-			add_transfers(transfer_counts, &F1, &F2, MAF1, MAF2);
+			add_transfers(transfer_counts, &F1, &F2, MAF1, MAF2, reverse_label_map);
 		}
 		if (MAF1 != NULL)
 			delete MAF1;
@@ -126,13 +130,19 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 	}
 }
 
-void print_transfer(Node *F1_source, Node *F1_target){
+void print_transfer(Node *F1_source, Node *F1_target, map<int, string> *reverse_label_map){
 	cout << F1_source->get_name() << "(" << F1_source->get_preorder_number() << ")" << " -> " 
 		 << F1_target->get_name() << "(" << F1_target->get_preorder_number() << ")" << endl;
+	cout << "F1 source " << endl;
+	F1_source->print_subtree();
+	print_leaf_list(F1_source, reverse_label_map);
+	cout << "F1 target " << endl;
+	F1_target->print_subtree();
+	print_leaf_list(F1_target, reverse_label_map);
 }
 
 void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
-		Forest *F2, Forest *MAF1, Forest *MAF2) {
+		Forest *F2, Forest *MAF1, Forest *MAF2, map<int, string> *reverse_label_map) {
 	int start = 1;
 	if (MAF2->contains_rho())
 		start = 0;
@@ -147,7 +157,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 //#endif
 
 	cout << "LGT events" << endl;
-	
+	int transfer_count = 0;
 	map<string, list<list<int>>> map_transfer_sibling;			
 
 	for(int i = start; i < MAF2->num_components(); i++) {
@@ -182,7 +192,8 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 					}
 				}
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
-				print_transfer(F1_source_new, F1_target_new);
+				print_transfer(F1_source_new, F1_target_new, reverse_label_map);
+				transfer_count++;
 			}
 			else if(LGT_MOVE_INDIVIDUAL_NODE){
 				list<Node*> lstSource = {F1_source_new};
@@ -204,7 +215,8 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 				for(c = lstSource.begin(); c != lstSource.end(); c++) {
 					for(ct = lstTarget.begin(); ct != lstTarget.end(); ct++) {
 						(*transfer_counts)[(*c)->get_preorder_number()][(*ct)->get_preorder_number()]++;
-						print_transfer(*c, *ct);
+						print_transfer(*c, *ct, reverse_label_map);
+						transfer_count++;
 					}
 				}
 			}
@@ -241,21 +253,24 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 								+ "_" + to_string(F1_target_new->get_preorder_number());
 				map_transfer_sibling[key] = {F1_source_sibling, F1_target_sibling};
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
-				print_transfer(F1_source_new, F1_target_new);
+				print_transfer(F1_source_new, F1_target_new, reverse_label_map);
+				transfer_count++;
 			}
 			else{
 				(*transfer_counts)[F1_source->get_preorder_number()][F1_target->get_preorder_number()]++;
-				print_transfer(F1_source, F1_target);
+				print_transfer(F1_source, F1_target, reverse_label_map);
+				transfer_count++;
 			}
 		}
 		else{
 			(*transfer_counts)[F1_source->get_preorder_number()][F1_target->get_preorder_number()]++;
-			print_transfer(F1_source, F1_target);
+			print_transfer(F1_source, F1_target, reverse_label_map);
+			transfer_count++;
 		}
 
 		// do we want to check that the move is valid here?
 	}
-	
+	cout << "Transfer count " << transfer_count << endl;
 	//Print transfer map
 	if(LGT_MAINTAIN_LIST){
 		cout << "Transfer map" << endl;
@@ -269,6 +284,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 			}
 		}
 	}
+	cout << endl;
 					// TODO: identify a valid move (if any) for each component
 					// loop over the components of MAF2
 							// map source to destination in MAF2
