@@ -675,7 +675,7 @@ void get_lgt_edges(Node *T1, Node *T2){
 	cout << "Initial distance : " << distance << endl;	
 	get_lgt_edges_hlpr(T1, T2, cur_node, distance, &nodes);
 
-	cout << "LGT edge list " << nodes..size() << endl;
+	cout << "LGT edge list " << nodes.size() << endl;
 	list<Node *>::iterator c;
 	for(c = nodes.begin(); c != nodes.end(); c++) {
 		cout << (*c)->parent()->get_preorder_number() << " - " << (*c)->get_preorder_number() << endl;
