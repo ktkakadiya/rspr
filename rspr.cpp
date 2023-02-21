@@ -762,8 +762,8 @@ int main(int argc, char *argv[]) {
 	}
 	if (DEFAULT_OPTIMIZATIONS) {
 		CUT_ALL_B=true;
-		CUT_ONE_B = true;
-		REVERSE_CUT_ONE_B = true;
+		CUT_ONE_B = false;
+		REVERSE_CUT_ONE_B = false;
 //		REVERSE_CUT_ONE_B_2 = true;
 		REVERSE_CUT_ONE_B_3 = true;
 		CUT_TWO_B = true;
