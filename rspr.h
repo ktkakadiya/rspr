@@ -6888,7 +6888,6 @@ bool is_nonbranching(Forest *T1, Forest *T2, Node *T1_a, Node *T1_c, Node *T2_a,
 		if (T2_a->parent()->parent() == T2_c->parent()
 			&& T2_c->parent() != NULL
 			&& T2_a->parent()->get_children().size() <= 2)
-			cout << "Non branching " << endl;
 			return true;
 	}
 	if (CUT_TWO_B && T1_a->parent()->parent() != NULL) {
