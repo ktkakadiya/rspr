@@ -147,14 +147,14 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 	if (MAF2->contains_rho())
 		start = 0;
 
-//#ifdef DEBUG
+#ifdef DEBUG
 	cout << "MAF1 : ";
 	MAF1->print_components();
-	//MAF1->print_components_preorder();
+	MAF1->print_components_preorder();
 	cout << "MAF2 : ";
 	MAF2->print_components();
-	//MAF2->print_components_preorder();
-//#endif
+	MAF2->print_components_preorder();
+#endif
 
 	cout << "LGT events" << endl;
 	int transfer_count = 0;
@@ -400,12 +400,14 @@ void add_transfers(list<transfer> *transfer_list, Forest *F1,
 	if (MAF2->contains_rho())
 		start = 0;
 
+#ifdef DEBUG
 	cout << "MAF1 : ";
 	MAF1->print_components();
 	MAF1->print_components_preorder();
 	cout << "MAF2 : ";
 	MAF2->print_components();
 	MAF2->print_components_preorder();
+#endif
 
 	for(int i = start; i < MAF2->num_components(); i++) {
 		Node *F2_source = MAF2->get_component(i);
