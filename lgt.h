@@ -101,6 +101,7 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		vector<Node *> *gene_trees, map<int, string> *reverse_label_map) {
 	#pragma omp parallel for
+	cout << "Super tree size " << super_tree->size() << endl;
 	for(int i = 0; i < gene_trees->size(); i++) {
 		Forest *MAF1 = NULL;
 		Forest *MAF2 = NULL;
@@ -110,6 +111,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 			int distance = rSPR_branch_and_bound_simple_clustering(F1.get_component(0), F2.get_component(0), &MAF1, &MAF2);
 			expand_contracted_nodes(MAF1);
 			expand_contracted_nodes(MAF2);
+			cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 #ifdef DEBUG_LGT			
 			cout << i << ": " << distance << endl;
 			//cout << "\tT1: "; F1.print_components();
