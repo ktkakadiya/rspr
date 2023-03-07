@@ -101,6 +101,7 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		vector<Node *> *gene_trees, map<int, string> *reverse_label_map) {
 	#pragma omp parallel for
+	cout << "Super tree size " << super_tree->size() << endl;
 	for(int i = 0; i < gene_trees->size(); i++) {
 		Forest *MAF1 = NULL;
 		Forest *MAF2 = NULL;
@@ -111,6 +112,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 			//for multifurcating
 			expand_contracted_nodes(MAF1);
 			expand_contracted_nodes(MAF2);
+			cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 #ifdef DEBUG_LGT			
 			cout << i << ": " << distance << endl;
 			//cout << "\tT1: "; F1.print_components();
@@ -193,7 +195,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 				}
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
 				print_transfer(F1_source_new, F1_target_new, reverse_label_map);
-				transfer_count++;
+				transfer_count++;	
 			}
 			else if(LGT_MOVE_INDIVIDUAL_NODE){
 				list<Node*> lstSource = {F1_source_new};
@@ -254,7 +256,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 				map_transfer_sibling[key] = {F1_source_sibling, F1_target_sibling};
 				(*transfer_counts)[F1_source_new->get_preorder_number()][F1_target_new->get_preorder_number()]++;
 				print_transfer(F1_source_new, F1_target_new, reverse_label_map);
-				transfer_count++;
+				transfer_count++;			
 			}
 			else{
 				(*transfer_counts)[F1_source->get_preorder_number()][F1_target->get_preorder_number()]++;
