@@ -678,6 +678,8 @@ void get_lgt_edges(Node *T1, Node *T2){
 	int distance = rSPR_branch_and_bound_simple_clustering(T1, T2);
 	cout << "Initial distance : " << distance << endl;	
 	get_lgt_edges_hlpr(T1, T2, cur_node, distance, &nodes);
+	cout << "Tree 1 type : " << T1->getTreeType() << endl;
+	cout << "Tree 2 type : " << T2->getTreeType() << endl;
 
 	cout << "LGT edge list " << nodes.size() << endl;
 	list<Node *>::iterator c;

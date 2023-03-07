@@ -2143,6 +2143,68 @@ class Node {
 		return d;
 	}
 
+	int getTreeType()
+	{
+		if(this->isLeftLadderTree())
+			return 0;
+		else if(this->isRightLadderTree())
+			return 4;
+		else {
+			int hDiff = this->getHeightDiff();
+			if(abs(hDiff) <= 1){
+				return 2;
+			}
+			else if(hDiff < 0)
+				return 3;
+			else 
+				return 1;
+		}
+		return -1;
+	}
+
+	bool isLeftLadderTree()
+	{
+		if(this->lchild() != NULL){
+			if(this->rchild() != NULL && !this->rchild()->is_leaf()){
+				return false;
+			}
+			return this->lchild()->isLeftLadderTree();
+		}
+		else if(is_leaf()){
+			return true;
+		}
+		return false;
+	}
+
+	bool isRightLadderTree()
+	{
+		if(this->rchild() != NULL){
+			if(this->lchild() != NULL && !this->lchild()->is_leaf()){
+				return false;
+			}
+			return this->rchild()->isRightLadderTree();
+		}
+		else if(is_leaf()){
+			return true;
+		}
+		return false;
+	}
+
+	int getHeightDiff()
+    {
+        // checking left subtree
+		int leftSubtreeHeight = 0;
+		if(this->lchild() != NULL)
+			leftSubtreeHeight = this->lchild()->max_depth();
+
+        // checking left subtree
+		int rightSubtreeHeight = 0;
+		if(this->rchild() != NULL)
+			rightSubtreeHeight = this->rchild()->max_depth();
+
+        return leftSubtreeHeight - rightSubtreeHeight;
+    }
+
 	// TODO: binary only
 	// these will potentially be removed
 
