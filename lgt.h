@@ -156,7 +156,11 @@ void add_transfers(vector<vector<int> > *transfer_counts, Forest *F1,
 	MAF2->print_components();
 	MAF2->print_components_preorder();
 #endif
-
+	cout << "MAF1 : ";
+	MAF1->print_components();
+	cout << "MAF2 : ";
+	MAF2->print_components();
+	
 	cout << "LGT events" << endl;
 	int transfer_count = 0;
 	map<string, list<list<int>>> map_transfer_sibling;			
