@@ -100,8 +100,8 @@ void show_moves(Node *T1, Node *T2, map<string, int> *label_map,
 
 void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		vector<Node *> *gene_trees, map<int, string> *reverse_label_map) {
-	#pragma omp parallel for
 	cout << "Super tree size " << super_tree->size() << endl;
+	#pragma omp parallel for
 	for(int i = 0; i < gene_trees->size(); i++) {
 		Forest *MAF1 = NULL;
 		Forest *MAF2 = NULL;
