@@ -2143,67 +2143,24 @@ class Node {
 		return d;
 	}
 
-	int getTreeType()
+	int get_sackin_index()
 	{
-		if(this->isLeftLadderTree())
-			return 0;
-		else if(this->isRightLadderTree())
-			return 4;
-		else {
-			int hDiff = this->getHeightDiff();
-			if(abs(hDiff) <= 1){
-				return 2;
-			}
-			else if(hDiff < 0)
-				return 3;
-			else 
-				return 1;
-		}
-		return -1;
+		return this->get_sackin_index_helper(0);
 	}
 
-	bool isLeftLadderTree()
+	int get_sackin_index_helper(int height)
 	{
-		if(this->lchild() != NULL){
-			if(this->rchild() != NULL && !this->rchild()->is_leaf()){
-				return false;
-			}
-			return this->lchild()->isLeftLadderTree();
+		if(this->is_leaf()){
+			return height;
 		}
-		else if(is_leaf()){
-			return true;
+
+		int index = 0;
+		for(list<Node *>::iterator c = children.begin(); c != children.end(); c++) 
+		{
+			index += (*c)->get_sackin_index_helper(height+1);
 		}
-		return false;
+		return index;
 	}
-
-	bool isRightLadderTree()
-	{
-		if(this->rchild() != NULL){
-			if(this->lchild() != NULL && !this->lchild()->is_leaf()){
-				return false;
-			}
-			return this->rchild()->isRightLadderTree();
-		}
-		else if(is_leaf()){
-			return true;
-		}
-		return false;
-	}
-
-	int getHeightDiff()
-    {
-        // checking left subtree
-		int leftSubtreeHeight = 0;
-		if(this->lchild() != NULL)
-			leftSubtreeHeight = this->lchild()->max_depth();
-
-        // checking left subtree
-		int rightSubtreeHeight = 0;
-		if(this->rchild() != NULL)
-			rightSubtreeHeight = this->rchild()->max_depth();
-
-        return leftSubtreeHeight - rightSubtreeHeight;
-    }
 
 	// TODO: binary only
 	// these will potentially be removed
