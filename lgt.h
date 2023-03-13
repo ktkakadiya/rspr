@@ -109,6 +109,7 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		Forest F2 = Forest((*gene_trees)[i]);
 		if (sync_twins(&F1,&F2)) {
 			int distance = rSPR_branch_and_bound_simple_clustering(F1.get_component(0), F2.get_component(0), &MAF1, &MAF2);
+			cout << "RSPR distance " << distance << endl;
 			//for multifurcating
 			expand_contracted_nodes(MAF1);
 			expand_contracted_nodes(MAF2);
