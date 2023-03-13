@@ -107,11 +107,12 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		Forest *MAF2 = NULL;
 		Forest F1 = Forest(super_tree);
 		Forest F2 = Forest((*gene_trees)[i]);
+		cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 		if (sync_twins(&F1,&F2)) {
 			int distance = rSPR_branch_and_bound_simple_clustering(F1.get_component(0), F2.get_component(0), &MAF1, &MAF2);
+			cout << "RSPR distance " << distance << endl;
 			expand_contracted_nodes(MAF1);
 			expand_contracted_nodes(MAF2);
-			cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 #ifdef DEBUG_LGT			
 			cout << i << ": " << distance << endl;
 			//cout << "\tT1: "; F1.print_components();
