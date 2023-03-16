@@ -511,7 +511,7 @@ void print_leaf_list(Node *T) {
 bool map_transfer(Node *F2_source, Forest *F1, Forest *MAF2,
 		Node **F1_source_out, Node **F1_target_out) {
 	bool ret_val = false;
-	if (F2_source->str() == "p")
+	if (F2_source->is_dead_component() ||F2_source->str() == "p")
 		return ret_val;
 	Node *F2_target = find_best_target(F2_source, MAF2);
 	#ifdef DEBUG_LGT			
@@ -532,6 +532,11 @@ bool map_transfer(Node *F2_source, Forest *F1, Forest *MAF2,
 	else
 		F1_target = F1->get_component(0);
 	#ifdef DEBUG_LGT			
+		if(F1_source != NULL && F2_source != NULL)
+			cout << "F1 source " << F1_source->get_preorder_number() << " - " << F2_source->get_preorder_number() << endl;
+		if(F1_target != NULL && F2_target != NULL)
+			cout << "F1 target " << F1_target->get_preorder_number() << " - " << F2_target->get_preorder_number() << endl;
+		
 		cout << "\tF1s: " << F1_source->str_edge_pre_interval_subtree()
 			<< endl;
 		if (F2_target != NULL)
@@ -562,6 +567,13 @@ Node *find_best_target(Node *source, Forest *AF) {
 }
 
 Node* find_best_target(Node *source, Node *target, Node **best_target) {
+	if(target->is_dead_component()){
+		return *best_target;
+	}
+	#ifdef DEBUG_LGT
+		cout << "Source : " << source->get_preorder_number() << endl;
+		cout << "Target : " << target->get_preorder_number() << " - " << target->get_edge_pre_start() << " - " << target->get_edge_pre_end()<< endl;
+	#endif
 	if (target->get_edge_pre_start() <= source->get_preorder_number()
 			&& target->get_edge_pre_end() >= source->get_preorder_number()
 			&& (*best_target == NULL || target->get_edge_pre_start() >
