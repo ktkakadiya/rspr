@@ -652,28 +652,33 @@ bool is_subset(vector<int>& A, vector<int>& B)
   return true;
 }
 
-void get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<Node *> *nodes){
-	if(cur_node == NULL){
-		return;
+bool get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<Node *> *nodes){
+	if(cur_node == NULL || cur_node->is_leaf()){
+		return false;
 	}
 
+	bool is_obligate = true;
 	list<Node *> children = cur_node->get_children();
 	list<Node *>::iterator c;
+	
 	for(c = children.begin(); c != children.end(); c++) {
-		//T1->unprotect_tree();
-		//T2->unprotect_tree();
+		bool is_child_obligate = get_lgt_edges_hlpr(T1, T2, *c, distance, nodes);
+		if(!is_child_obligate){
+			(*c)->protect_edge_forcefully();
+			int dist = rSPR_branch_and_bound_simple_clustering(T1, T2);
 
-		(*c)->protect_edge_forcefully();
-		int dist = rSPR_branch_and_bound_simple_clustering(T1, T2);
-
-		cout << "Cur node " << cur_node->get_preorder_number() << " - Children " << (*c)->get_preorder_number() << " - Distance " << dist << endl;
-		if(distance < dist){
-			nodes->push_back(*c);
-			//cout << "Adding node" << endl;
+			cout << "Cur node " << cur_node->get_preorder_number() << " - Children " << (*c)->get_preorder_number() << " - Distance " << dist << endl;
+			if(distance < dist){
+				nodes->push_back(*c);
+				//cout << "Adding node" << endl;
+			}
+			else {
+				is_obligate = false;
+			}
+			(*c)->unprotect_edge_forcefully();
 		}
-		(*c)->unprotect_edge_forcefully();
-		get_lgt_edges_hlpr(T1, T2, *c, distance, nodes);		
 	}
+	return is_obligate;
 }
 
 void get_lgt_edges(Node *T1, Node *T2){
