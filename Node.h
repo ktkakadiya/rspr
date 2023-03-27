@@ -1500,6 +1500,12 @@ class Node {
 		return (non_leaf_children == 0 && !is_leaf() 
 				&& pre_num == get_child_min_preorder());
 	}
+	
+	bool is_dead_component() {
+		if(this->name == DEAD_COMPONENT)
+			return true;
+		return false;
+	}
 
 	int get_child_min_preorder(){
 		int min_pre_num = INT_MAX;
