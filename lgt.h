@@ -658,7 +658,6 @@ bool get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<N
 	}
 
 	bool is_obligate = true;
-	int non_obligate_childeren = 0;
 	list<Node *> children = cur_node->get_children();
 	list<Node *>::iterator c;
 	
@@ -674,13 +673,11 @@ bool get_lgt_edges_hlpr(Node *T1, Node *T2, Node *cur_node, int distance, list<N
 				//cout << "Adding node" << endl;
 			}
 			else {
-				non_obligate_childeren++;
+				is_obligate = false;
 			}
 			(*c)->unprotect_edge_forcefully();
 		}
 	}
-	if(non_obligate_childeren == children.size())
-		is_obligate = false;
 	return is_obligate;
 }
 
