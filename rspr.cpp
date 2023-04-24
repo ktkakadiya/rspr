@@ -222,6 +222,7 @@ bool DEBUG_REVERSE = false;
 bool RANDOM_SPR = false;
 int RANDOM_SPR_COUNT = 0;
 int MULTI_TEST = 0;
+int MIN_PERCENT_LGT = 100;
 
 string USAGE =
 "rspr, version 1.3.1\n"
@@ -750,6 +751,16 @@ int main(int argc, char *argv[]) {
 		}
 		else if (strcmp(arg, "-show_lgt_events") == 0) {
 			SHOW_LGT_EVENTS = true;
+		}
+		else if (strcmp(arg, "-show_percent_lgt_events") == 0) {
+			SHOW_PERCENT_LGT_EVENTS = true;
+			if (max_args > argc) {
+				char *arg2 = argv[argc+1];
+				if (arg2[0] != '-')
+					MIN_PERCENT_LGT = atof(arg2);
+			}
+			ALL_MAFS = true;
+			PREFER_CUT_B_FIRST = true;
 		}
 		else if (strcmp(arg, "-sequence") == 0) {
 			SEQUENCE = true;

@@ -53,6 +53,7 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 #include <set>
 #include <list>
+#include <unordered_set>
 #include <algorithm>
 #include "Forest.h"
 #include "ClusterForest.h"
@@ -226,6 +227,7 @@ bool check_all_pairs = true;
 bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
+bool SHOW_PERCENT_LGT_EVENTS = false;
 
 class ProblemSolution {
 public:
@@ -3552,13 +3554,20 @@ if (ALL_MAFS
 		|| true
 #endif
 		) {
-	cout << endl << endl << "FOUND ANSWERS" << endl;
+
+	vector<string> vecComponents;
+	unordered_set<string> setMAFs;
+	cout << endl << endl << "FOUND ANSWERS " << AFs.size() << endl;
 	// TODO: this is a cheap hack
 	for (list<pair<Forest,Forest> >::iterator x = AFs.begin(); x != AFs.end(); x++) {
 		if (label_map != NULL && reverse_label_map != NULL) {
 			x->first.numbers_to_labels(reverse_label_map);
 			x->second.numbers_to_labels(reverse_label_map);
 		}
+		
+		string strMAF = (x->first).add_vec_components(&vecComponents);
+		setMAFs.insert(strMAF);
+
 		cout << "\tT1: ";
 		x->first.print_components();
 		cout << "\tT2: ";
@@ -3568,7 +3577,33 @@ if (ALL_MAFS
 			x->second.labels_to_numbers(label_map, reverse_label_map);
 		}
 	}
+	cout << "FOUND UNIQUE ANSWERS " << setMAFs.size() << endl;
 }
+
+	if(SHOW_PERCENT_LGT_EVENTS){
+		map<int, int> cut_edge_count;
+		int totalAFs = AFs.size();
+		for (list<pair<Forest,Forest> >::iterator x = AFs.begin(); x != AFs.end(); x++) {
+			vector<Node *> components = x->second.components;
+			vector<Node *>::iterator it;
+			for(it = components.begin(); it != components.end(); it++) {
+				Node *root = *it;
+				if (root != NULL &&  root->get_edge_pre_start() != 0){
+					cut_edge_count[root->get_preorder_number()]++;
+				}
+			}
+		}
+
+		std::map<int, int>::iterator itr = cut_edge_count.begin();
+		while (itr != cut_edge_count.end())
+		{
+			int count = itr->second;
+			float percent = (count * 100) / totalAFs;
+			std::cout << "Key: " << itr->first << ", Value: " << percent << std::endl;
+			++itr;
+		}
+	}
+
 AFs.front().first.swap(T1);
 AFs.front().second.swap(T2);
 sync_twins(T1,T2);

@@ -210,6 +210,40 @@ class Forest {
 		cout << endl;
 	}
 
+	string add_vec_components(vector<string> *vecComponents) {
+		string compOrder;
+		string strComponent;
+		vector<int> comp_indx;
+
+		vector<Node *>::iterator it = components.begin();
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root == NULL)
+				strComponent = "!";
+			else if (root->is_leaf() && root->str() == "")
+				strComponent = "*";
+			else
+				strComponent = root->str_subtree();
+
+			vector<string>::iterator itrr = std::find(vecComponents->begin(), vecComponents->end(), strComponent);
+			if(itrr == vecComponents->end()){
+				comp_indx.push_back(vecComponents->size());
+				vecComponents->push_back(strComponent);
+			}
+			else {
+				int idx = std::distance(vecComponents->begin(), itrr);
+				comp_indx.push_back(idx);
+			}
+		}
+		
+		sort(comp_indx.begin(), comp_indx.end());
+		vector<int>::iterator itr;
+		for(itr = comp_indx.begin(); itr != comp_indx.end(); itr++){
+			compOrder += (to_string(*itr) + "_");
+		}
+		return compOrder;
+	}
+
 	// print the forest
 	void print_components_preorder() {
 		vector<Node *>::iterator it = components.begin();
