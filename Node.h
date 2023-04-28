@@ -46,7 +46,7 @@ using namespace std;
 
 bool IGNORE_MULTI = false;
 double REQUIRED_SUPPORT = 0.0;
-double SUPPORT_BY_VALUE = 1;
+double SUPPORT_BY_VALUE = 1.0;
 double MIN_LENGTH = -1.0;
 
 struct StringCompare {
