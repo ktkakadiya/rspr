@@ -202,7 +202,7 @@ bool MEMOIZE = false;
 bool MULTIFURCATING = false;
 bool MULT_4_BRANCH = false;
 bool USE_CASE_7 = true;
-bool ALL_MAFS = false;
+bool ALL_MAFS = true;
 int NUM_CLUSTERS = 0;
 int MAX_CLUSTERS = -1;
 bool UNROOTED_MIN_APPROX = false;
@@ -233,7 +233,7 @@ bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
-bool PREFER_CUT_B_FIRST = false;
+bool PREFER_CUT_B_FIRST = true;
 
 class ProblemSolution {
 public:
@@ -4018,7 +4018,13 @@ cout << "  ";
 				if (T2_a->parent()->get_children().size() > 2)
 					multi_node = true;
 
-			if (CUT_ONE_B || PREFER_CUT_B_FIRST) {
+			bool prefer_b_first = false;
+			if(PREFER_CUT_B_FIRST){
+				if (T2_a->parent()->parent() == T2_c->parent()
+					&& T2_c->parent() != NULL && !cut_b_only)
+					prefer_b_first = true;
+			}
+			if (CUT_ONE_B) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL && !cut_b_only)
 					cut_b_only=true;
@@ -4456,7 +4462,7 @@ cout << "  ";
 						T2_d = T2_c->get_sibling();
 				}
 
-				bool prefer_b_first = PREFER_CUT_B_FIRST && cut_b_only;
+				//bool prefer_b_first = PREFER_CUT_B_FIRST && cut_b_only;
 				if(!prefer_b_first)
 				{
 					answer_a = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
@@ -6958,7 +6964,7 @@ bool is_nonbranching(Forest *T1, Forest *T2, Node *T1_a, Node *T1_c, Node *T2_a,
 		num_protected += T2_a->get_sibling()->is_protected();
 	if (num_protected >= 2)
 		return true;
-	if (CUT_ONE_B) {
+	if (CUT_ONE_B || PREFER_CUT_B_FIRST) {
 		if (T2_a->parent()->parent() == T2_c->parent()
 			&& T2_c->parent() != NULL
 			&& T2_a->parent()->get_children().size() <= 2)
