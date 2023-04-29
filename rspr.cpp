@@ -769,6 +769,14 @@ int main(int argc, char *argv[]) {
 			}
 			ALL_MAFS = true;
 		}
+		else if (strcmp(arg, "-all_mafs_case") == 0) {
+			if (max_args > argc) {
+				char *arg2 = argv[argc+1];
+				if (arg2[0] != '-') {
+					ALL_MAFS_CASE = arg2;
+				}
+			}
+		}
 		else if (strcmp(arg, "-sequence") == 0) {
 			SEQUENCE = true;
 		}
@@ -778,13 +786,18 @@ int main(int argc, char *argv[]) {
 		}
 			
 	}
+
+	if(ALL_MAFS_CASE == "0"){
+		DEFAULT_OPTIMIZATIONS = false;
+	}
+
 	if (DEFAULT_OPTIMIZATIONS) {
 		CUT_ALL_B=true;
-		CUT_ONE_B = false;
-		REVERSE_CUT_ONE_B = false;
+		CUT_ONE_B = true;
+		REVERSE_CUT_ONE_B = true;
 //		REVERSE_CUT_ONE_B_2 = true;
 		REVERSE_CUT_ONE_B_3 = true;
-		CUT_TWO_B = false;
+		CUT_TWO_B = true;
 //		CUT_TWO_B_ROOT = true;
 		CUT_AC_SEPARATE_COMPONENTS = true;
 		EDGE_PROTECTION = true;
@@ -816,6 +829,30 @@ int main(int argc, char *argv[]) {
 		        CLUSTER_TUNE = 30;
 		    else
 			CLUSTER_TUNE = 30;
+		}
+		
+		for (int i = 0; i < ALL_MAFS_CASE.length(); i++) {
+			int cur_case = int(ALL_MAFS_CASE[i]) - 48; 
+			switch (cur_case) {
+				case 1:
+					CUT_ALL_B = false; break;
+				case 2:
+					CUT_ONE_B = false; break;
+				case 3:
+					REVERSE_CUT_ONE_B = false; break;
+				case 4:
+					REVERSE_CUT_ONE_B_3 = false; break;
+				case 5:
+					CUT_TWO_B = false; break;
+				case 6:
+					CUT_AC_SEPARATE_COMPONENTS = false; break;
+				case 7:
+					EDGE_PROTECTION = false; break;
+				case 8:
+					EDGE_PROTECTION_TWO_B = false; break;
+				default:
+					break;
+			}
 		}
 	}
 	PREORDER_SIBLING_PAIRS = true;

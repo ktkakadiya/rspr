@@ -233,6 +233,7 @@ bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
+string ALL_MAFS_CASE = "0";
 
 class ProblemSolution {
 public:
