@@ -709,6 +709,14 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
+		else if (strcmp(arg, "-support_by_value") == 0) {
+			if (max_args > argc) {
+				char *arg2 = argv[argc+1];
+				if (arg2[0] != '-')
+					SUPPORT_BY_VALUE = atof(arg2);
+			}
+		}
+		
 		else if (strcmp(arg, "-support") == 0) {
 			if (max_args > argc) {
 				char *arg2 = argv[argc+1];

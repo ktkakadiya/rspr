@@ -46,6 +46,7 @@ using namespace std;
 
 bool IGNORE_MULTI = false;
 double REQUIRED_SUPPORT = 0.0;
+double SUPPORT_BY_VALUE = 1.0;
 double MIN_LENGTH = -1.0;
 
 struct StringCompare {
@@ -1500,6 +1501,12 @@ class Node {
 		return (non_leaf_children == 0 && !is_leaf() 
 				&& pre_num == get_child_min_preorder());
 	}
+	
+	bool is_dead_component() {
+		if(this->name == DEAD_COMPONENT)
+			return true;
+		return false;
+	}
 
 	int get_child_min_preorder(){
 		int min_pre_num = INT_MAX;
@@ -2892,7 +2899,7 @@ int build_tree_helper(int start, const string& s, Node *parent,
 						string info = s.substr(loc, next - loc);
 						// support values (a number after a close bracket)
 						if (info[0] != ':') {
-							double support = atof(info.c_str());
+							double support = atof(info.c_str()) / SUPPORT_BY_VALUE;
 							#if DEBUG_SUPPORT
 							cout << "support=" << support << endl;
 							#endif

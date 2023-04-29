@@ -107,13 +107,12 @@ void add_transfers(vector<vector<int> > *transfer_counts, Node *super_tree,
 		Forest *MAF2 = NULL;
 		Forest F1 = Forest(super_tree);
 		Forest F2 = Forest((*gene_trees)[i]);
+		cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 		if (sync_twins(&F1,&F2)) {
 			int distance = rSPR_branch_and_bound_simple_clustering(F1.get_component(0), F2.get_component(0), &MAF1, &MAF2);
 			cout << "RSPR distance " << distance << endl;
-			//for multifurcating
 			expand_contracted_nodes(MAF1);
 			expand_contracted_nodes(MAF2);
-			cout << "Gene tree size " << (*gene_trees)[i]->size() << endl;
 #ifdef DEBUG_LGT			
 			cout << i << ": " << distance << endl;
 			//cout << "\tT1: "; F1.print_components();
@@ -531,7 +530,7 @@ void print_leaf_list(Node *T) {
 bool map_transfer(Node *F2_source, Forest *F1, Forest *MAF2,
 		Node **F1_source_out, Node **F1_target_out) {
 	bool ret_val = false;
-	if (F2_source->str() == "p")
+	if (F2_source->is_dead_component() ||F2_source->str() == "p")
 		return ret_val;
 	Node *F2_target = find_best_target(F2_source, MAF2);
 	#ifdef DEBUG_LGT			
@@ -553,8 +552,11 @@ bool map_transfer(Node *F2_source, Forest *F1, Forest *MAF2,
 		F1_target = F1->get_component(0);
 
 	#ifdef DEBUG_LGT			
-		cout << "F1 source " << F1_source->get_preorder_number() << " - " << F2_source->get_preorder_number() << endl;
-		cout << "F1 target " << F1_target->get_preorder_number() << " - " << F2_target->get_preorder_number() << endl;
+		if(F1_source != NULL && F2_source != NULL)
+			cout << "F1 source " << F1_source->get_preorder_number() << " - " << F2_source->get_preorder_number() << endl;
+		if(F1_target != NULL && F2_target != NULL)
+			cout << "F1 target " << F1_target->get_preorder_number() << " - " << F2_target->get_preorder_number() << endl;
+		
 		cout << "\tF1s: " << F1_source->str_edge_pre_interval_subtree()
 			<< endl;
 		if (F2_target != NULL)
@@ -585,6 +587,9 @@ Node *find_best_target(Node *source, Forest *AF) {
 }
 
 Node* find_best_target(Node *source, Node *target, Node **best_target) {
+	if(target->is_dead_component()){
+		return *best_target;
+	}
 	#ifdef DEBUG_LGT
 		cout << "Source : " << source->get_preorder_number() << endl;
 		cout << "Target : " << target->get_preorder_number() << " - " << target->get_edge_pre_start() << " - " << target->get_edge_pre_end()<< endl;
