@@ -233,7 +233,6 @@ bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
-bool PREFER_CUT_B_FIRST = true;
 
 class ProblemSolution {
 public:
@@ -4018,12 +4017,6 @@ cout << "  ";
 				if (T2_a->parent()->get_children().size() > 2)
 					multi_node = true;
 
-			bool prefer_b_first = false;
-			if(PREFER_CUT_B_FIRST){
-				if (T2_a->parent()->parent() == T2_c->parent()
-					&& T2_c->parent() != NULL && !cut_b_only)
-					prefer_b_first = true;
-			}
 			if (CUT_ONE_B) {
 				if (T2_a->parent()->parent() == T2_c->parent()
 					&& T2_c->parent() != NULL && !cut_b_only)
@@ -4462,14 +4455,10 @@ cout << "  ";
 						T2_d = T2_c->get_sibling();
 				}
 
-				//bool prefer_b_first = PREFER_CUT_B_FIRST && cut_b_only;
-				if(!prefer_b_first)
-				{
-					answer_a = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
-						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
-						cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
-						T2_ab, balanced, multi_b1, multi_b2, T2_d);
-				}
+				answer_a = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
+					singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
+					cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
+					T2_ab, balanced, multi_b1, multi_b2, T2_d);
 
 				best_k = answer_a;
 				best_T1 = T1;
@@ -4648,27 +4637,16 @@ cout << "  ";
 					}
 				}
 
-				bool bSuccess = false;
 				if (answer_b > best_k
 						|| (answer_b == best_k
 							&& PREFER_RHO
 							&& T2->contains_rho() )) {
 					best_k = answer_b;
-					bSuccess = true;
 					//swap(&best_T1, &T1);
 					//swap(&best_T2, &T2);
 				}
 
 				um.undo_to(undo_state);
-
-				bool prefered_b_first_success = prefer_b_first && bSuccess;
-				if(prefered_b_first_success){
-					answer_a = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
-						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
-						cut_a_only, false, cut_c_only, path_length, &um, 
-						T2_ab, balanced, multi_b1, multi_b2, T2_d);
-					um.undo_to(undo_state);
-				}
 
 				/*
 				delete T1;
@@ -4697,7 +4675,7 @@ cout << "  ";
 	//						T2_c->parent()->get_children().size() > 2) &&
 						(!ABORT_AT_FIRST_SOLUTION || best_k < 0
 							|| !PREFER_RHO || !AFs->front().first.contains_rho() )
-						&& (cut_b_only == false || prefered_b_first_success) && cut_ab_only == false
+						&& (cut_b_only == false) && cut_ab_only == false
 						&& cut_a_only == false
 						// TODO: do we allow this if T2_c has no parent?
 						// it has to be under rho, right?
@@ -4939,7 +4917,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 }
 
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map, int min_k, int max_k, Forest **out_F1, Forest **out_F2) {
-	bool do_cluster = true;
+	bool do_cluster = false;
 	if (max_k > MAX_SPR)
 		max_k = MAX_SPR;
 	else if (max_k == -1)
@@ -4970,9 +4948,9 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 	else {
 	  full_approx_spr = rSPR_worse_3_approx(&F3, &F4);
 	}
-	if (full_approx_spr < CLUSTER_TUNE) {
+	/*if (full_approx_spr < CLUSTER_TUNE) {
 		do_cluster = false;
-	}
+	}*/
 	if (verbose) {
 
 		cout << "approx F1: ";
@@ -6964,7 +6942,7 @@ bool is_nonbranching(Forest *T1, Forest *T2, Node *T1_a, Node *T1_c, Node *T2_a,
 		num_protected += T2_a->get_sibling()->is_protected();
 	if (num_protected >= 2)
 		return true;
-	if (CUT_ONE_B || PREFER_CUT_B_FIRST) {
+	if (CUT_ONE_B) {
 		if (T2_a->parent()->parent() == T2_c->parent()
 			&& T2_c->parent() != NULL
 			&& T2_a->parent()->get_children().size() <= 2)

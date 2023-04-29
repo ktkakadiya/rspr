@@ -768,7 +768,6 @@ int main(int argc, char *argv[]) {
 					MIN_PERCENT_LGT = atof(arg2);
 			}
 			ALL_MAFS = true;
-			PREFER_CUT_B_FIRST = true;
 		}
 		else if (strcmp(arg, "-sequence") == 0) {
 			SEQUENCE = true;
