@@ -239,7 +239,7 @@ bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
-string ALL_MAFS_CASE = "0";
+string ALL_MAFS_CASE = "9";
 bool PREFER_CUT_B_FIRST = true;
 
 class ProblemSolution {
@@ -6998,7 +6998,7 @@ bool is_nonbranching(Forest *T1, Forest *T2, Node *T1_a, Node *T1_c, Node *T2_a,
 			&& T2_a->parent()->get_children().size() <= 2)
 			return true;
 	}
-	if (CUT_TWO_B && T1_a->parent()->parent() != NULL) {
+	if ((CUT_TWO_B || PREFER_CUT_B_FIRST) && T1_a->parent()->parent() != NULL) {
 		Node *T1_s = T1_a->parent()->get_sibling();
 		if (T1_s->is_leaf()) {
 			Node *T2_l = T2_a->parent()->parent();
