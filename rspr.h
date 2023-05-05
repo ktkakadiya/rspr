@@ -4577,13 +4577,11 @@ cout << "  ";
 
 				if(prefer_c_first)
 				{
-					answer_c =  rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
+					cut_c_success =  rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
 						false, false, T2_d, lca_depth, best_k);
-
-					cut_c_success = cut_c_success && prefer_c_first;
 				}
 				um.undo_to(undo_state);
 
@@ -4687,10 +4685,10 @@ cout << "  ";
 				um.undo_to(undo_state);
 
 				if(cut_b_success || cut_c_success){
-					answer_a = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
+					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
 						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
 						cut_a_only, false, cut_c_only, path_length, &um, T2_ab, balanced, 
-						multi_b1, multi_b2, cut_b_success, cut_b_success, T2_d, best_k);
+						multi_b1, multi_b2, cut_b_success, cut_c_success, T2_d, best_k);
 				}
 				um.undo_to(undo_state);
 
@@ -4701,7 +4699,7 @@ cout << "  ";
 				delete singletons;
 				*/
 				if(prefer_none || cut_a_success || cut_b_success){
-					answer_c =  rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
+					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
