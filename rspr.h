@@ -3668,8 +3668,8 @@ int rSPR_branch_and_bound_hlpr(Forest *T1, Forest *T2, int k,
 set<SiblingPair> *sibling_pairs, list<Node *> *singletons,
 bool cut_b_only, list<pair<Forest,Forest> > *AFs,
 list<Node *> *protected_stack, int *num_ties, Node *prev_T1_a, Node *prev_T1_c) {
-	cout << "rSPR_branch_and_bound_hlpr()" << endl;
 	#ifdef DEBUG
+	cout << "rSPR_branch_and_bound_hlpr()" << endl;
 	cout << "\tT1: ";
 	T1->print_components();
 	cout << "\tT2: ";
@@ -4467,7 +4467,7 @@ cout << "  ";
 				bool prefer_a_first = PREFER_CUT_FIRST && cut_a_only;
 				bool prefer_b_first = PREFER_CUT_FIRST && cut_b_only;
 				bool prefer_c_first = PREFER_CUT_FIRST && cut_c_only;
-				bool prefer_none = !PREFER_CUT_FIRST || (!cut_a_only && !cut_b_only || !cut_c_only);
+				bool prefer_none = !PREFER_CUT_FIRST || (!cut_a_only && !cut_b_only && !cut_c_only);
 
 				bool cut_a_success = false;
 				bool cut_b_success = false;
