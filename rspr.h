@@ -4575,7 +4575,7 @@ cout << "  ";
 					}
 				}
 
-				/*if(prefer_c_first)
+				if(prefer_c_first)
 				{
 					cut_c_success =  rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
@@ -4583,7 +4583,7 @@ cout << "  ";
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
 						false, false, T2_d, lca_depth, best_k);
 				}
-				um.undo_to(undo_state);*/
+				um.undo_to(undo_state);
 
 				// cut T2_b
 				if(prefer_none || prefer_b_first || cut_a_success || cut_c_success) {
@@ -4698,13 +4698,13 @@ cout << "  ";
 				delete sibling_pairs;
 				delete singletons;
 				*/
-				//if(!prefer_c_first && (prefer_none || cut_a_success || cut_b_success)){
+				if(!prefer_c_first && (prefer_none || cut_a_success || cut_b_success)){
 					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
 						cut_a_success, cut_b_success, T2_d, lca_depth, best_k);
-				//}
+				}
 
 				/*
 				delete T1;
