@@ -4638,7 +4638,13 @@ cout << "  ";
 							T2->add_component(T2_b);
 							if (T2_b->is_leaf())
 								singletons->push_back(T2_b);
-							cut_b_success = prefer_b_first;
+
+							if(prefer_b_first && T2_a->parent() == T2_c->parent()){
+								Node *T1_s = T1_ac->get_sibling();
+								if (T1_s != NULL && T1_s->get_twin() == T2_b) {
+									cut_b_success = true;
+								}
+							}
 						}
 					add_sibling_pair(sibling_pairs, T1_a, T1_c,
 							&um);
@@ -4678,6 +4684,8 @@ cout << "  ";
 							&& PREFER_RHO
 							&& T2->contains_rho() )) {
 					best_k = answer_b;
+					if(!cut_b_success)
+						cut_b_success = prefer_b_first;
 					//swap(&best_T1, &T1);
 					//swap(&best_T2, &T2);
 				}
@@ -4824,7 +4832,6 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 		um->add_event(new AddComponent(T2));
 		T2->add_component(T2_a);
 		singletons->push_back(T2_a);
-		bSuccess = true;
 
 		// also require !cut_a_only ?
 		//					if (EDGE_PROTECTION_TWO_B && T2_c->is_protected() && !cut_a_only) {
@@ -4864,6 +4871,7 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				&& PREFER_RHO
 				&& T2->contains_rho() )) {
 		best_k = answer_a;
+		bSuccess = true;
 	}
 	return bSuccess;
 }
@@ -4921,7 +4929,6 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 				singletons->push_back(node);
 			um->add_event(new AddComponent(T2));
 			T2->add_component(T2_c);
-			bSuccess = true;
 		}
 		else {
 			// don't decrease k
@@ -4979,6 +4986,7 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 					&& PREFER_RHO
 					&& T2->contains_rho() )) {
 			best_k = answer_c;
+			bSuccess = true;
 			//swap(&best_T1, &T1);
 			//swap(&best_T2, &T2);
 		}
