@@ -4684,8 +4684,8 @@ cout << "  ";
 							&& PREFER_RHO
 							&& T2->contains_rho() )) {
 					best_k = answer_b;
-					if(!cut_b_success)
-						cut_b_success = prefer_b_first;
+					//if(!cut_b_success)
+					//	cut_b_success = prefer_b_first;
 					//swap(&best_T1, &T1);
 					//swap(&best_T2, &T2);
 				}
@@ -4871,7 +4871,7 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				&& PREFER_RHO
 				&& T2->contains_rho() )) {
 		best_k = answer_a;
-		bSuccess = true;
+		//bSuccess = true;
 	}
 	return bSuccess;
 }
@@ -4986,7 +4986,7 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 					&& PREFER_RHO
 					&& T2->contains_rho() )) {
 			best_k = answer_c;
-			bSuccess = true;
+			//bSuccess = true;
 			//swap(&best_T1, &T1);
 			//swap(&best_T2, &T2);
 		}
