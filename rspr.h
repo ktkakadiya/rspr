@@ -113,13 +113,13 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2, 
-	bool cut_a_success, bool cut_c_success,Node *T2_d, int &best_k);
+	bool cut_a_success, bool cut_c_success,Node *T2_d, int &best_k, bool cut_b_handled);
 bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	bool balanced, bool multi_b1, bool multi_b2, bool cut_a_or_merge_ac, bool cut_ab_only,
-	bool cut_a_success, bool cut_c_success, Node *T2_d, int lca_depth, int &best_k);
+	bool cut_a_success, bool cut_c_success, Node *T2_d, int lca_depth, int &best_k, bool cut_b_handled);
 int rSPR_total_approx_distance(Node *T1, vector<Node *> &gene_trees);
 int rSPR_total_approx_distance(Node *T1, vector<Node *> &gene_trees,
 		int threshold);
@@ -4249,7 +4249,8 @@ cout << "  ";
 					um.undo_to(undo_state);
 				}
 
-				if (!cut_a_only && !cut_c_only && !cut_b_only)
+				if ((!cut_a_only && !cut_c_only && !cut_b_only) 
+						|| (PREFER_CUT_FIRST && (cut_a_only || cut_c_only)))
 					same_component = T2_a->same_component(T2_c, lca_depth, path_length);
 				if (cut_b_only)
 					same_component = true;
@@ -4478,7 +4479,7 @@ cout << "  ";
 					cut_a_success = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
 						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
-						T2_ab, balanced, multi_b1, multi_b2, false, false, T2_d, best_k);
+						T2_ab, balanced, multi_b1, multi_b2, false, false, T2_d, best_k, false);
 
 					cut_a_success = cut_a_success && prefer_a_first;
 				}
@@ -4581,11 +4582,12 @@ cout << "  ";
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
-						false, false, T2_d, lca_depth, best_k);
+						false, false, T2_d, lca_depth, best_k, false);
 				}
 				um.undo_to(undo_state);
 
 				// cut T2_b
+				bool cut_b_handled = false;
 				if(prefer_none || prefer_b_first || cut_a_success || cut_c_success) {
 					if ((!CUT_AC_SEPARATE_COMPONENTS || same_component)
 	//						&& ((!T2_b->parent()->is_protected()
@@ -4639,6 +4641,7 @@ cout << "  ";
 							if (T2_b->is_leaf())
 								singletons->push_back(T2_b);
 
+							cut_b_handled = true;
 							if(prefer_b_first && T2_a->parent() == T2_c->parent()){
 								Node *T1_s = T1_ac->get_sibling();
 								if (T1_s != NULL && T1_s->get_twin() == T2_b) {
@@ -4664,6 +4667,19 @@ cout << "  ";
 							}
 						}
 
+						if(cut_a_success){
+							if (!T2_a->is_protected()){
+								um.add_event(new ProtectEdge(T2_a));
+								T2_a->protect_edge();
+							}
+						}
+						else if(cut_c_success){
+							if (!T2_c->is_protected()){
+								um.add_event(new ProtectEdge(T2_c));
+								T2_c->protect_edge();
+							}
+						}
+
 						if (CUT_ALL_B) {
 							answer_b =
 								rSPR_branch_and_bound_hlpr(T1, T2, k-1,
@@ -4684,8 +4700,8 @@ cout << "  ";
 							&& PREFER_RHO
 							&& T2->contains_rho() )) {
 					best_k = answer_b;
-					//if(!cut_b_success)
-					//	cut_b_success = prefer_b_first;
+					if(!cut_b_success)
+						cut_b_success = prefer_b_first;
 					//swap(&best_T1, &T1);
 					//swap(&best_T2, &T2);
 				}
@@ -4696,7 +4712,7 @@ cout << "  ";
 					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
 						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
 						cut_a_only, false, cut_c_only, path_length, &um, T2_ab, balanced, 
-						multi_b1, multi_b2, cut_b_success, cut_c_success, T2_d, best_k);
+						multi_b1, multi_b2, cut_b_success, cut_c_success, T2_d, best_k, cut_b_handled);
 				}
 				um.undo_to(undo_state);
 
@@ -4711,7 +4727,7 @@ cout << "  ";
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
 						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
-						cut_a_success, cut_b_success, T2_d, lca_depth, best_k);
+						cut_a_success, cut_b_success, T2_d, lca_depth, best_k, cut_b_handled);
 				}
 
 				/*
@@ -4803,7 +4819,7 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2,
-	bool cut_b_success, bool cut_c_success, Node *T2_d, int &best_k)
+	bool cut_b_success, bool cut_c_success, Node *T2_d, int &best_k, bool cut_b_handled)
 {
 	int answer_a = -1;
 	Node *node;
@@ -4854,6 +4870,24 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				}
 			}
 		}
+		
+		if(cut_b_success){
+			if (!T2_b->is_protected()){
+				um->add_event(new ProtectEdge(T2_b));
+				T2_b->protect_edge();
+			}
+		}
+		else if(cut_c_success){
+			if (cut_b_handled && !T2_b->is_protected()){
+				um->add_event(new ProtectEdge(T2_b));
+				T2_b->protect_edge();
+			}
+			if (!T2_c->is_protected()){
+				um->add_event(new ProtectEdge(T2_c));
+				T2_c->protect_edge();
+			}
+		}
+
 		if (cut_a_only) {
 			answer_a =
 				rSPR_branch_and_bound_hlpr(T1, T2, k-1, sibling_pairs,
@@ -4871,7 +4905,7 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				&& PREFER_RHO
 				&& T2->contains_rho() )) {
 		best_k = answer_a;
-		//bSuccess = true;
+		bSuccess = true;
 	}
 	return bSuccess;
 }
@@ -4881,7 +4915,7 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	bool balanced, bool multi_b1, bool multi_b2, bool cut_a_or_merge_ac, bool cut_ab_only,
-	bool cut_a_success, bool cut_b_success, Node *T2_d, int lca_depth, int &best_k) 
+	bool cut_a_success, bool cut_b_success, Node *T2_d, int lca_depth, int &best_k, bool cut_b_handled) 
 {	
 	int answer_c = -1;
 	Node *node;
@@ -4970,6 +5004,24 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 				T2_a->set_max_merge_depth(lca_depth);
 		}
 
+
+		if(cut_b_success){
+			if (!T2_b->is_protected()){
+				um->add_event(new ProtectEdge(T2_b));
+				T2_b->protect_edge();
+			}
+		}
+		else if(cut_a_success){
+			if (!T2_a->is_protected()){
+				um->add_event(new ProtectEdge(T2_a));
+				T2_a->protect_edge();
+			}
+			if (cut_b_handled && !T2_b->is_protected()){
+				um->add_event(new ProtectEdge(T2_b));
+				T2_b->protect_edge();
+			}
+		}
+
 		singletons->push_back(T2_c);
 		if (cut_c_only) {
 			answer_c =
@@ -4986,7 +5038,7 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 					&& PREFER_RHO
 					&& T2->contains_rho() )) {
 			best_k = answer_c;
-			//bSuccess = true;
+			bSuccess = true;
 			//swap(&best_T1, &T1);
 			//swap(&best_T2, &T2);
 		}
