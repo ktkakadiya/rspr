@@ -4222,7 +4222,7 @@ cout << "  ";
 				// make copies for the approx
 				// be careful we do not kill real T1 and T2
 				// ie use the copies
-				if (BB && ((!cut_a_only && !cut_b_only && !cut_c_only) || (PREFER_CUT_FIRST))) {
+				if (BB && !cut_a_only && !cut_b_only && !cut_c_only) {
 					list<Node *> *spairs;
 					spairs = new list<Node *>();
 					spairs->push_back(T1_c);
