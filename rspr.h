@@ -31,7 +31,7 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************/
 
 #define RSPR
-//#define DEBUG 1
+#define DEBUG 1
 //#define DEBUG_CONTRACTED 1
 //#define DEBUG_APPROX 1
 //#define DEBUG_CLUSTERS 1
@@ -112,16 +112,13 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
-	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2, 
-	bool cut_a_success, bool cut_c_success,Node *T2_d, int &best_k, 
-	bool &cut_a_handled, bool cut_b_handled, bool cut_c_handled);
+	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2, Node *T2_d, int &best_k);
 bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	bool balanced, bool multi_b1, bool multi_b2, bool cut_a_or_merge_ac, bool cut_ab_only,
-	bool cut_a_success, bool cut_c_success, Node *T2_d, int lca_depth, int &best_k,
-	bool cut_a_handled, bool cut_b_handled, bool &cut_c_handled);
+	Node *T2_d, int lca_depth, int &best_k);
 int rSPR_total_approx_distance(Node *T1, vector<Node *> &gene_trees);
 int rSPR_total_approx_distance(Node *T1, vector<Node *> &gene_trees,
 		int threshold);
@@ -243,7 +240,6 @@ int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "9";
-bool PREFER_CUT_FIRST = true;
 
 class ProblemSolution {
 public:
@@ -4222,7 +4218,7 @@ cout << "  ";
 				// make copies for the approx
 				// be careful we do not kill real T1 and T2
 				// ie use the copies
-				if (BB && ((!cut_a_only && !cut_b_only && !cut_c_only) || (PREFER_CUT_FIRST))) {
+				if (BB && !cut_a_only && !cut_b_only && !cut_c_only) {
 					list<Node *> *spairs;
 					spairs = new list<Node *>();
 					spairs->push_back(T1_c);
@@ -4251,8 +4247,7 @@ cout << "  ";
 					um.undo_to(undo_state);
 				}
 
-				if ((!cut_a_only && !cut_c_only && !cut_b_only) 
-						|| (PREFER_CUT_FIRST && (cut_a_only || cut_c_only)))
+				if (!cut_a_only && !cut_c_only && !cut_b_only)
 					same_component = T2_a->same_component(T2_c, lca_depth, path_length);
 				if (cut_b_only)
 					same_component = true;
@@ -4467,29 +4462,11 @@ cout << "  ";
 						T2_d = T2_c->get_sibling();
 				}
 
-				bool prefer_a_first = PREFER_CUT_FIRST && cut_a_only;
-				bool prefer_b_first = PREFER_CUT_FIRST && cut_b_only;
-				bool prefer_c_first = PREFER_CUT_FIRST && cut_c_only;
-				bool prefer_none = !PREFER_CUT_FIRST || (!cut_a_only && !cut_b_only && !cut_c_only);
 
-				bool cut_a_success = false;
-				bool cut_b_success = false;
-				bool cut_c_success = false;
-				
-				bool cut_a_handled = false;
-				bool cut_b_handled = false;
-				bool cut_c_handled = false;
-
-				if(prefer_none || prefer_a_first)
-				{
-					cut_a_success = rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
-						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
-						cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
-						T2_ab, balanced, multi_b1, multi_b2, false, false, T2_d, 
-						best_k, cut_a_handled, false, false);
-
-					cut_a_success = cut_a_success && prefer_a_first;
-				}
+				rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
+					singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
+					cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
+					T2_ab, balanced, multi_b1, multi_b2, T2_d, best_k);
 
 				best_T1 = T1;
 				best_T2 = T2;
@@ -4583,117 +4560,88 @@ cout << "  ";
 					}
 				}
 
-				if(prefer_c_first)
-				{
-					cut_c_success =  rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
-						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
-						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
-						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
-						false, false, T2_d, lca_depth, best_k, false, false, cut_c_handled);
-				}
-				um.undo_to(undo_state);
-
 				// cut T2_b
-				if(prefer_none || prefer_b_first || cut_a_success || cut_c_success) {
-					if ((!CUT_AC_SEPARATE_COMPONENTS || same_component)
-	//						&& ((!T2_b->parent()->is_protected()
-									&& (((multi_node || !T2_b->is_protected())))
-							&& (!ABORT_AT_FIRST_SOLUTION || best_k < 0
-								|| !PREFER_RHO || !AFs->front().first.contains_rho() )
-							&& (!cut_a_only || cut_a_success)  && (!cut_c_only || cut_c_success)
-							&& (T2_a->parent()->parent() != NULL
-									|| !T2_a->is_protected()
-									|| (T2_a->parent() == T2->get_component(0)
-											&& !T2->contains_rho()))) {
-						if (multi_node) {
-							um.add_event(new ChangeEdgePreInterval(T2_a));
-							T2_a->copy_edge_pre_interval(T2_ab);
-							um.add_event(new CutParent(T2_a));
-							T2_a->cut_parent();
-							um.add_event(new ChangeEdgePreInterval(T2_ab));
-							T2_ab->set_edge_pre_start(-1);
-							T2_ab->set_edge_pre_end(-1);
-							Node *T2_ab_parent = T2_ab->parent();
-							if (T2_ab_parent != NULL) {
-								um.add_event(new CutParent(T2_ab));
-								T2_ab->cut_parent();
-								um.add_event(new AddChild(T2_a));
-								T2_ab_parent->add_child(T2_a);
-								um.add_event(new AddComponent(T2));
-								T2->add_component(T2_ab);
-							}
-							else {
-								if (T2->get_component(0) == T2_ab) {
-									um.add_event(new AddComponentToFront(T2));
-									T2->add_component(0, T2_a);
-								}
-								else {
-									um.add_event(new AddComponent(T2));
-									T2->add_component(T2_a);
-									singletons->push_back(T2_a);
-								}
-							}
+				if ((!CUT_AC_SEPARATE_COMPONENTS || same_component)
+//						&& ((!T2_b->parent()->is_protected()
+								&& (((multi_node || !T2_b->is_protected())))
+						&& (!ABORT_AT_FIRST_SOLUTION || best_k < 0
+							|| !PREFER_RHO || !AFs->front().first.contains_rho() )
+						&& !cut_a_only && !cut_c_only
+						&& (T2_a->parent()->parent() != NULL
+								|| !T2_a->is_protected()
+								|| (T2_a->parent() == T2->get_component(0)
+										&& !T2->contains_rho()))) {
+					if (multi_node) {
+						um.add_event(new ChangeEdgePreInterval(T2_a));
+						T2_a->copy_edge_pre_interval(T2_ab);
+						um.add_event(new CutParent(T2_a));
+						T2_a->cut_parent();
+						um.add_event(new ChangeEdgePreInterval(T2_ab));
+						T2_ab->set_edge_pre_start(-1);
+						T2_ab->set_edge_pre_end(-1);
+						Node *T2_ab_parent = T2_ab->parent();
+						if (T2_ab_parent != NULL) {
+							um.add_event(new CutParent(T2_ab));
+							T2_ab->cut_parent();
+							um.add_event(new AddChild(T2_a));
+							T2_ab_parent->add_child(T2_a);
+							um.add_event(new AddComponent(T2));
+							T2->add_component(T2_ab);
 						}
 						else {
-							um.add_event(new CutParent(T2_b));
-							T2_b->cut_parent();
-							ContractEvent(&um, T2_ab);
-							node = T2_ab->contract();
-							if (node != NULL && node->is_singleton()
-									&& node != T2->get_component(0))
-									singletons->push_back(node);
-							um.add_event(new AddComponent(T2));
-							T2->add_component(T2_b);
-							if (T2_b->is_leaf())
-								singletons->push_back(T2_b);
-
-							cut_b_handled = true;
-							if(prefer_b_first && T2_a->parent() == T2_c->parent()){
-								Node *T1_s = T1_ac->get_sibling();
-								if (T1_s != NULL && T1_s->get_twin() == T2_b) {
-									cut_b_success = true;
-								}
+							if (T2->get_component(0) == T2_ab) {
+								um.add_event(new AddComponentToFront(T2));
+								T2->add_component(0, T2_a);
+							}
+							else {
+								um.add_event(new AddComponent(T2));
+								T2->add_component(T2_a);
+								singletons->push_back(T2_a);
 							}
 						}
-					add_sibling_pair(sibling_pairs, T1_a, T1_c,
-							&um);
+					}
+					else {
+						um.add_event(new CutParent(T2_b));
+						T2_b->cut_parent();
+						ContractEvent(&um, T2_ab);
+						node = T2_ab->contract();
+						if (node != NULL && node->is_singleton()
+								&& node != T2->get_component(0))
+								singletons->push_back(node);
+						um.add_event(new AddComponent(T2));
+						T2->add_component(T2_b);
+						if (T2_b->is_leaf())
+							singletons->push_back(T2_b);
+					}
+				add_sibling_pair(sibling_pairs, T1_a, T1_c,
+						&um);
 
-						// TODO: check carefully
+					// TODO: check carefully
 
-						if (cut_a_or_merge_ac) {
-							if (!T2_a->is_protected()) {
-								um.add_event(new ProtectEdge(T2_a));
-								T2_a->protect_edge();
-								um.add_event(new ListPushBack(protected_stack));
-								protected_stack->push_back(T2_a);
-							}
-							if (!T2_c->is_protected()) {
-								um.add_event(new ProtectEdge(T2_c));
-								T2_c->protect_edge();
-							}
+					if (cut_a_or_merge_ac) {
+						if (!T2_a->is_protected()) {
+							um.add_event(new ProtectEdge(T2_a));
+							T2_a->protect_edge();
+							um.add_event(new ListPushBack(protected_stack));
+							protected_stack->push_back(T2_a);
 						}
-
-						if(cut_a_handled && !T2_a->is_protected()){
-								um.add_event(new ProtectEdge(T2_a));
-								T2_a->protect_edge();
-						}
-						else if(cut_c_handled && !T2_c->is_protected()){
+						if (!T2_c->is_protected()) {
 							um.add_event(new ProtectEdge(T2_c));
 							T2_c->protect_edge();
 						}
+					}
 
-						if (CUT_ALL_B) {
-							answer_b =
-								rSPR_branch_and_bound_hlpr(T1, T2, k-1,
-										sibling_pairs, singletons, true, AFs, protected_stack,
-										num_ties, T1_a, T1_c);
-						}
-						else {
-							answer_b =
-								rSPR_branch_and_bound_hlpr(T1, T2, k-1,
-										sibling_pairs, singletons, false, AFs, protected_stack,
-										num_ties, T1_a, T1_c);
-						}
+					if (CUT_ALL_B) {
+						answer_b =
+							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
+									sibling_pairs, singletons, true, AFs, protected_stack,
+									num_ties, T1_a, T1_c);
+					}
+					else {
+						answer_b =
+							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
+									sibling_pairs, singletons, false, AFs, protected_stack,
+									num_ties, T1_a, T1_c);
 					}
 				}
 
@@ -4702,21 +4650,10 @@ cout << "  ";
 							&& PREFER_RHO
 							&& T2->contains_rho() )) {
 					best_k = answer_b;
-					if(!cut_b_success)
-						cut_b_success = prefer_b_first;
 					//swap(&best_T1, &T1);
 					//swap(&best_T2, &T2);
 				}
 
-				um.undo_to(undo_state);
-
-				if(!prefer_a_first && (cut_b_success || cut_c_success)){
-					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
-						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
-						cut_a_only, false, cut_c_only, path_length, &um, T2_ab, balanced, 
-						multi_b1, multi_b2, cut_b_success, cut_c_success, T2_d, best_k,
-						cut_a_handled, cut_b_handled, cut_c_handled);
-				}
 				um.undo_to(undo_state);
 
 				/*
@@ -4725,14 +4662,10 @@ cout << "  ";
 				delete sibling_pairs;
 				delete singletons;
 				*/
-				if(!prefer_c_first && (prefer_none || cut_a_success || cut_b_success)){
-					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
-						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
-						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
-						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only,
-						cut_a_success, cut_b_success, T2_d, lca_depth, best_k,
-						cut_a_handled, cut_b_handled, cut_c_handled);
-				}
+				rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
+					singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
+					cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
+					multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only, T2_d, lca_depth, best_k);
 
 				/*
 				delete T1;
@@ -4822,19 +4755,16 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
-	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2,
-	bool cut_b_success, bool cut_c_success, Node *T2_d, int &best_k, 
-	bool &cut_a_handled, bool cut_b_handled, bool cut_c_handled)
+	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2, Node *T2_d, int &best_k)
 {
 	int answer_a = -1;
 	Node *node;
-	bool bSuccess = false;
 
 	// cut T2_a
 	//				if (cut_b_only == false && T2_a->is_protected())
 	//					cout << "protected k=" << k << endl;
-	if ((cut_b_only == false || cut_b_success) 
-		&& (cut_c_only == false || cut_c_success) &&
+	if (cut_b_only == false 
+		&& cut_c_only == false &&
 			!T2_a->is_protected()
 			&& (T2_a->parent()->parent() != NULL
 					|| (T2_a->parent() == T2->get_component(0)
@@ -4853,7 +4783,6 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 		um->add_event(new AddComponent(T2));
 		T2->add_component(T2_a);
 		singletons->push_back(T2_a);
-		cut_a_handled = true;
 
 		// also require !cut_a_only ?
 		//					if (EDGE_PROTECTION_TWO_B && T2_c->is_protected() && !cut_a_only) {
@@ -4876,15 +4805,6 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				}
 			}
 		}
-		
-		if(cut_b_handled && !T2_b->is_protected()){
-			um->add_event(new ProtectEdge(T2_b));
-			T2_b->protect_edge();
-		}
-		if(cut_c_handled && !T2_c->is_protected()){
-			um->add_event(new ProtectEdge(T2_c));
-			T2_c->protect_edge();
-		}
 
 		if (cut_a_only) {
 			answer_a =
@@ -4903,22 +4823,18 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 				&& PREFER_RHO
 				&& T2->contains_rho() )) {
 		best_k = answer_a;
-		bSuccess = true;
 	}
-	return bSuccess;
 }
 
 bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
-	bool balanced, bool multi_b1, bool multi_b2, bool cut_a_or_merge_ac, bool cut_ab_only,
-	bool cut_a_success, bool cut_b_success, Node *T2_d, int lca_depth, int &best_k, 
-	bool cut_a_handled, bool cut_b_handled, bool &cut_c_handled) 
+	bool balanced, bool multi_b1, bool multi_b2, bool cut_a_or_merge_ac, bool cut_ab_only, 
+	Node *T2_d, int lca_depth, int &best_k) 
 {	
 	int answer_c = -1;
 	Node *node;
-	bool bSuccess = false;
 	
 	// load the copy
 	/*
@@ -4939,8 +4855,8 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	//						T2_c->parent()->get_children().size() > 2) &&
 			(!ABORT_AT_FIRST_SOLUTION || best_k < 0
 				|| !PREFER_RHO || !AFs->front().first.contains_rho() )
-			&& (cut_b_only == false || cut_b_success) && cut_ab_only == false
-			&& (cut_a_only == false || cut_a_success)
+			&& cut_b_only == false && cut_ab_only == false
+			&& cut_a_only == false
 			// TODO: do we allow this if T2_c has no parent?
 			// it has to be under rho, right?
 			&& (T2_c->parent() == NULL
@@ -4962,7 +4878,6 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 				singletons->push_back(node);
 			um->add_event(new AddComponent(T2));
 			T2->add_component(T2_c);
-			cut_c_handled = true;
 		}
 		else {
 			// don't decrease k
@@ -5004,15 +4919,6 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 				T2_a->set_max_merge_depth(lca_depth);
 		}
 
-		if(cut_b_handled && !T2_b->is_protected()){
-			um->add_event(new ProtectEdge(T2_b));
-			T2_b->protect_edge();
-		}
-		if(cut_a_handled && !T2_a->is_protected()){
-			um->add_event(new ProtectEdge(T2_a));
-			T2_a->protect_edge();
-		}
-
 		singletons->push_back(T2_c);
 		if (cut_c_only) {
 			answer_c =
@@ -5029,12 +4935,10 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 					&& PREFER_RHO
 					&& T2->contains_rho() )) {
 			best_k = answer_c;
-			bSuccess = true;
 			//swap(&best_T1, &T1);
 			//swap(&best_T2, &T2);
 		}
 	}
-	return bSuccess;
 }
 
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map) {

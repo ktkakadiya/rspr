@@ -768,7 +768,6 @@ int main(int argc, char *argv[]) {
 					MIN_PERCENT_LGT = atof(arg2);
 			}
 			ALL_MAFS = true;
-			PREFER_CUT_FIRST = true;
 		}
 		else if (strcmp(arg, "-all_mafs_case") == 0) {
 			if (max_args > argc) {
