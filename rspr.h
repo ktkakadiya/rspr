@@ -93,9 +93,11 @@ int rSPR_worse_3_approx_binary(Forest *T1, Forest *T2, bool sync);
 int rSPR_worse_3_approx_binary(Forest *T1, Forest *T2);
 int rSPR_branch_and_bound(Forest *T1, Forest *T2);
 int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k);
+int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k, list<pair<Forest,Forest>> *extAFs);
 int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k,
 		map<string, int> *label_map,
-		map<int, string> *reverse_label_map);
+		map<int, string> *reverse_label_map,
+		list<pair<Forest,Forest>> *extAFs);
 
 int rSPR_branch_and_bound_range(Forest *T1, Forest *T2, int end_k);
 int rSPR_branch_and_bound_range(Forest *T1, Forest *T2, int start_k,
@@ -240,6 +242,7 @@ int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "9";
+bool ALL_MERGED_MAFS = true;
 
 class ProblemSolution {
 public:
@@ -3518,7 +3521,11 @@ k = -1;
 }
 
 int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k) {
-	return rSPR_branch_and_bound(T1, T2, k, NULL, NULL);
+	return rSPR_branch_and_bound(T1, T2, k, NULL, NULL, NULL);
+}
+
+int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k, list<pair<Forest,Forest>> *extAFs) {
+	return rSPR_branch_and_bound(T1, T2, k, NULL, NULL, extAFs);
 }
 
 /* rSPR_branch_and_bound
@@ -3530,7 +3537,8 @@ int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k) {
  */
 int rSPR_branch_and_bound(Forest *T1, Forest *T2, int k,
 		map<string, int> *label_map,
-		map<int, string> *reverse_label_map) {
+		map<int, string> *reverse_label_map,
+		list<pair<Forest,Forest>> *extAFs) {
 	// find sibling pairs of T1
 //	cout << "foo1" << endl;
 	if (!sync_twins(T1, T2))
@@ -3548,6 +3556,7 @@ return 0;
 
 	set<SiblingPair> *sibling_pairs;
 	list<Node *> singletons;
+	
 	list<pair<Forest,Forest> > AFs = list<pair<Forest,Forest> >();
 	sibling_pairs = find_sibling_pairs_set(T1);
 	singletons = T2->find_singletons();
@@ -3578,7 +3587,10 @@ if (ALL_MAFS
 		}
 		
 		string strMAF = (x->first).add_vec_components(&vecComponents);
-		setMAFs.insert(strMAF);
+		std::pair<std::unordered_set<string>::iterator, bool> insertResult = setMAFs.insert(strMAF);
+		if(ALL_MERGED_MAFS && insertResult.second){
+			extAFs->push_back(make_pair(x->first, x->second));
+		}
 
 		cout << "\tT1: ";
 		x->first.print_components();
@@ -4950,7 +4962,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 }
 
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map, int min_k, int max_k, Forest **out_F1, Forest **out_F2) {
-	bool do_cluster = false;
+	bool do_cluster = true;
 	if (max_k > MAX_SPR)
 		max_k = MAX_SPR;
 	else if (max_k == -1)
@@ -5174,16 +5186,22 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 					cout << k << " ";
   				cout.flush();
 				}
+
+				list<pair<Forest,Forest>> extAFs = list<pair<Forest,Forest>>();
 				if (k + total_k <= max_k && k <= CLUSTER_MAX_SPR) {
 					if (f1t.get_component(0)->get_name() == DEAD_COMPONENT) {
 						f1t.add_rho();
 						f2t.add_rho();
 					}
+
 					if (MULTIFURCATING) {
 					  exact_spr = rSPR_branch_and_bound_mult(&f1t, &f2t, k);
 					}
 					else {
-					  exact_spr = rSPR_branch_and_bound(&f1t, &f2t, k);
+						if(ALL_MERGED_MAFS)
+							exact_spr = rSPR_branch_and_bound(&f1t, &f2t, k, &extAFs);
+						else
+							exact_spr = rSPR_branch_and_bound(&f1t, &f2t, k);
 					}
 				}
 				if (exact_spr >= 0 || k + total_k > max_k ||
@@ -5238,8 +5256,8 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 						}
 					}
 					if ( i < num_clusters - 1) {
-						F1.join_cluster(i,&f1t);
-						F2.join_cluster(i,&f2t);
+						F1.join_cluster(i, &f1t);
+						F2.join_cluster(i, &f2t);
 					}
 					else {
 						F1.join_cluster(&f1t);
