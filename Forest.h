@@ -244,6 +244,36 @@ class Forest {
 		return compOrder;
 	}
 
+	/**
+	 * @brief Check whether forest has component with given preorder number as root
+	 * 
+	 * @param pre_num 
+	 * @return true 
+	 * @return false 
+	 */
+	bool has_component_with_prenum(int pre_num) {
+		vector<Node *>::iterator it = components.begin();
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root != NULL && root->get_preorder_number() == pre_num){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	Node* get_contracted_node_with_prenum(int pre_num){
+		vector<Node *>::iterator it = components.begin();
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root != NULL && root->get_edge_pre_start() <= pre_num
+								&& root->get_edge_pre_end() >= pre_num){
+				return root->get_contracted_node_with_prenum(pre_num);
+			}
+		}
+		return NULL;
+	}
+
 	// print the forest
 	void print_components_preorder() {
 		vector<Node *>::iterator it = components.begin();

@@ -241,7 +241,7 @@ bool PREFER_NONBRANCHING = false;
 int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
-string ALL_MAFS_CASE = "9";
+string ALL_MAFS_CASE = "2358";
 bool ALL_MERGED_MAFS = true;
 
 class ProblemSolution {
@@ -4953,6 +4953,73 @@ bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	}
 }
 
+Forest merge_agreement_forests(Forest *upper_forest, Forest *lower_forest, 
+									bool has_sep_comp, int lower_cluster_prenum) {
+	Forest merged_forest = Forest(upper_forest);
+	Node* cluster_node = merged_forest.get_contracted_node_with_prenum(lower_cluster_prenum);
+	if(!cluster_node){
+		cout << "Cluster node not found!" << endl;
+		return merged_forest;
+	}
+
+	vector<Node *> components = lower_forest->components;
+	bool has_rho = lower_forest->contains_rho();
+	
+	if(has_sep_comp){
+		vector<Node *>::iterator it;	
+		for(it = components.begin(); it != components.end(); it++) {
+			if (!has_rho || (*it)->str() != "p"){
+				merged_forest.add_component(new Node(**it));
+			}
+		}
+	}
+	else {
+		vector<Node *>::iterator it;
+		int i=0;
+		for(it = components.begin(); it != components.end(); it++) {
+			if(!has_rho){
+				if(i == 0){
+					if((*it)->get_preorder_number() != cluster_node->get_preorder_number()){
+						Node* lower_comp = new Node(**it);
+						Node* lower_clstr_parent = cluster_node->parent();
+						if(lower_clstr_parent != NULL){
+							cluster_node->cut_parent();
+							lower_clstr_parent->add_child(lower_comp);
+						}
+					}
+				}
+				else{
+					merged_forest.add_component(new Node(**it));
+				}
+			}
+			i++;
+		}
+	}
+	return merged_forest;
+}
+
+list<pair<Forest,Forest>> merge_cluster_forests(list<pair<Forest,Forest>> upper_cluster_mafs,
+												list<pair<Forest,Forest>> lower_cluster_mafs,
+												int lower_cluster_prenum){
+	list<pair<Forest,Forest>> merged_mafs = list<pair<Forest,Forest>>();
+	for (const auto& upper_maf_pair : upper_cluster_mafs) {
+		Forest uF1 = upper_maf_pair.first;
+		Forest uF2 = upper_maf_pair.second;			
+
+		bool has_sep_comp = uF1.has_component_with_prenum(lower_cluster_prenum);
+		for (const auto& lower_maf_pair : lower_cluster_mafs) {
+			Forest lF1 = lower_maf_pair.first;
+			Forest lF2 = lower_maf_pair.second;		
+			Forest merged_maf1 = merge_agreement_forests(&uF1, &lF1, has_sep_comp, lower_cluster_prenum);
+			Forest merged_maf2 = merge_agreement_forests(&uF2, &lF2, has_sep_comp, lower_cluster_prenum);
+			merged_maf1.print_components();
+			merged_maf2.print_components();
+			merged_mafs.push_back(make_pair(merged_maf1, merged_maf2));
+		}
+	}
+	return merged_mafs;
+}
+
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map) {
 	return rSPR_branch_and_bound_simple_clustering(T1,T2, verbose, label_map, reverse_label_map, -1, -1, NULL, NULL);
 }
@@ -5048,9 +5115,21 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 	}
 		//F1.print_components();
 		//F2.print_components();
+
+	int cur_cluster_index = 0;
+	vector<int> cluster_parent_index;
+	vector<int> unsolved_cluster_prenums;
+	vector<int> cluster_prenums;
+	
 	if (do_cluster) {
 		sync_interior_twins(&F1, &F2);
 		cluster_points = find_cluster_points(&F1, &F2);
+
+		if(ALL_MERGED_MAFS){
+			cluster_parent_index.assign(cluster_points->size()+1, -1);
+			cluster_prenums.assign(cluster_points->size()+1, -1);
+		}
+
 		//	list<Node *> *cluster_points = new list<Node *>();
 		for(list<Node *>::iterator i = cluster_points->begin();
 				i != cluster_points->end(); i++) {
@@ -5081,6 +5160,30 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 	
 			if (twin_parent == NULL)
 				continue;
+
+			if(ALL_MERGED_MAFS){
+				cur_cluster_index++;
+				if(unsolved_cluster_prenums.size() > 0){
+					int child_cluster_index = cur_cluster_index - 1;
+					while(child_cluster_index >= 0 
+						&& unsolved_cluster_prenums.back() > n->get_preorder_number()){
+							cluster_parent_index[child_cluster_index] = cur_cluster_index;
+							child_cluster_index--;
+							unsolved_cluster_prenums.pop_back();
+					}
+				}
+				unsolved_cluster_prenums.push_back(n->get_preorder_number());
+				cluster_prenums[cur_cluster_index] = n->get_preorder_number();
+			}
+
+			/*cout << "Cluster prenums " << endl;
+			for(int j=0; j<cluster_prenums.size(); j++){
+				cout << cluster_prenums[j] << endl;
+			}
+			cout << "Cluster Parents " << endl;
+			for(int j=0; j<cluster_parent_index.size(); j++){
+				cout << cluster_parent_index[j] << endl;
+			}*/
 	
 			F1.add_cluster(n,cluster_name);
 	
@@ -5106,6 +5209,9 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 	int k;
 	int num_clusters = F1.num_components();
 	int total_k = 0;
+
+	map<int, pair<Node*, Node*>> cur_maf_roots;
+	map<int, list<pair<Forest,Forest>>> map_cluster_mafs;
 
 	for(int i = 1; i < num_clusters; i++) {
 		if (i == num_clusters - 1) {
@@ -5254,6 +5360,47 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 								//total_k += min_spr;
 								total_k += approx_spr / 3;
 						}
+					}
+					if(ALL_MERGED_MAFS) {
+						int child_cluster_index = i - 1;
+						int cur_parent_idx = i;
+						if (i >= num_clusters - 1) {
+							cur_parent_idx = -1;
+						}
+						map_cluster_mafs[i] = extAFs;
+						while(child_cluster_index > 0){
+							if(cluster_parent_index[child_cluster_index] == cur_parent_idx){
+								map_cluster_mafs[i] = merge_cluster_forests(map_cluster_mafs[i],
+													map_cluster_mafs[child_cluster_index],
+													cluster_prenums[child_cluster_index]);
+							}
+							child_cluster_index--;
+						}
+
+						//Printing code					
+						vector<string> vecComponents;
+						unordered_set<string> setMAFs;
+						cout << endl << endl << "FOUND ANSWERS " << map_cluster_mafs[i].size() << endl;
+						// TODO: this is a cheap hack
+						for (list<pair<Forest,Forest> >::iterator x = map_cluster_mafs[i].begin(); x != map_cluster_mafs[i].end(); x++) {
+							if (label_map != NULL && reverse_label_map != NULL) {
+								x->first.numbers_to_labels(reverse_label_map);
+								x->second.numbers_to_labels(reverse_label_map);
+							}
+							
+							string strMAF = (x->first).add_vec_components(&vecComponents);
+							setMAFs.insert(strMAF);
+
+							cout << "\tMerged T1: ";
+							x->first.print_components();
+							cout << "\tMerged T2: ";
+							x->second.print_components();
+							if (label_map != NULL && reverse_label_map != NULL) {
+								x->first.labels_to_numbers(label_map, reverse_label_map);
+								x->second.labels_to_numbers(label_map, reverse_label_map);
+							}
+						}
+						cout << "FOUND MERGED UNIQUE ANSWERS " << setMAFs.size() << endl;
 					}
 					if ( i < num_clusters - 1) {
 						F1.join_cluster(i, &f1t);
