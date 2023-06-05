@@ -5079,10 +5079,10 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 			*/
 	
 			Node *n = *i;
-			if (n->parent()->parent() == NULL
+			/*if (n->parent()->parent() == NULL
 					&& n->get_sibling() != NULL &&
 					n->get_sibling()->get_name() == "X")
-				continue;
+				continue;*/
 			Node *n_parent = n->parent();
 			Node *twin = n->get_twin();
 			Node *twin_parent = twin->parent();
