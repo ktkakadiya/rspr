@@ -50,7 +50,7 @@ class ClusterMergeForest {
 
     private:
         int cur_cluster_index;
-        vector<int> unsolved_cluster_prenums;
+        vector<pair<int, int>> unsolved_cluster_prenums;
         vector<int> cluster_parent_index;
         vector<int> cluster_prenums_f1;
         vector<int> cluster_prenums_f2;
@@ -89,15 +89,12 @@ class ClusterMergeForest {
     void assign_cluster_parent(int cluster_node_prenum, int cluster_node_twin_prenum) {
         cur_cluster_index++;
         if(unsolved_cluster_prenums.size() > 0){
-            int child_cluster_index = cur_cluster_index - 1;
-            while(child_cluster_index >= 0 
-                && unsolved_cluster_prenums.back() > cluster_node_prenum){
-                    cluster_parent_index[child_cluster_index] = cur_cluster_index;
-                    child_cluster_index--;
-                    unsolved_cluster_prenums.pop_back();
+            while(unsolved_cluster_prenums.back().second > cluster_node_prenum){
+                cluster_parent_index[unsolved_cluster_prenums.back().first] = cur_cluster_index;
+                unsolved_cluster_prenums.pop_back();
             }
         }
-        unsolved_cluster_prenums.push_back(cluster_node_prenum);
+        unsolved_cluster_prenums.push_back(make_pair(cur_cluster_index, cluster_node_prenum));
         cluster_prenums_f1[cur_cluster_index] = cluster_node_prenum;
         cluster_prenums_f2[cur_cluster_index] = cluster_node_twin_prenum;	
     }
