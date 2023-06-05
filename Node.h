@@ -421,6 +421,19 @@ class Node {
 		n->cut_parent();
 	}
 
+	// Replace contracted child node
+	void replace_contracted_child(Node *cur_node, Node *new_node){
+		new_node->contracted = true;
+		if (contracted_lc != NULL && contracted_lc == cur_node) {
+			contracted_lc->delete_tree();
+			contracted_lc = new_node;
+		}
+		else if(contracted_rc != NULL && contracted_rc == cur_node) {
+			contracted_rc->delete_tree();
+			contracted_rc = new_node;
+		}
+	}
+
 	// TODO: make sure this doesn't break things with >2 children
 	// add a child
 	void add_child(Node *n) {
@@ -504,10 +517,19 @@ class Node {
 */
 	// Get node with given pre_num
 	Node* get_contracted_node_with_prenum(int pre_num) {
-		if(this->contracted_lc != NULL && this->contracted_lc->get_preorder_number() == pre_num)
+		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())
+			return NULL;
+		if(this->get_edge_pre_start() == pre_num || this->get_preorder_number() == pre_num )
+			return this;
+					
+		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() == pre_num
+											|| this->contracted_lc->get_preorder_number() == pre_num)){
 			return contracted_lc;
-		if(this->contracted_rc != NULL && this->contracted_rc->get_preorder_number() == pre_num)
+		}
+		if(this->contracted_rc != NULL && (this->contracted_rc->get_edge_pre_start() == pre_num
+											|| this->contracted_rc->get_preorder_number() == pre_num)){
 			return contracted_rc;
+		}
 
 		list<Node *>::iterator c;
 		for(c = children.begin(); c != children.end(); c++) {
@@ -515,6 +537,7 @@ class Node {
 			if(cur_node)
 				return cur_node;
 		}
+		
 		return NULL;
 	}
 

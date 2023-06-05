@@ -245,6 +245,23 @@ class Forest {
 	}
 
 	/**
+	 * @brief Get component with given preorder number as root index
+	 * 
+	 * @param pre_num 
+	 * @return
+	 */
+	int get_component_index_with_prenum(int pre_num) {
+		for(int i=0; i<components.size(); i++){
+			Node *root = components[i];
+			if (root != NULL && (root->get_edge_pre_start() == pre_num
+								|| root->get_preorder_number() == pre_num)){
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * @brief Check whether forest has component with given preorder number as root
 	 * 
 	 * @param pre_num 
@@ -252,23 +269,32 @@ class Forest {
 	 * @return false 
 	 */
 	bool has_component_with_prenum(int pre_num) {
-		vector<Node *>::iterator it = components.begin();
-		for(it = components.begin(); it != components.end(); it++) {
-			Node *root = *it;
-			if (root != NULL && root->get_preorder_number() == pre_num){
-				return true;
-			}
+		if(get_component_index_with_prenum(pre_num) >= 0){
+			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @brief Remove component with given preorder number as root
+	 * 
+	 * @param pre_num  
+	 */
+	void remove_component_with_prenum(int pre_num) {
+		int idx = get_component_index_with_prenum(pre_num);
+		if(idx >= 0){
+			erase_components(idx, idx+1);
+		}
 	}
 
 	Node* get_contracted_node_with_prenum(int pre_num){
 		vector<Node *>::iterator it = components.begin();
 		for(it = components.begin(); it != components.end(); it++) {
 			Node *root = *it;
-			if (root != NULL && root->get_edge_pre_start() <= pre_num
-								&& root->get_edge_pre_end() >= pre_num){
-				return root->get_contracted_node_with_prenum(pre_num);
+			if (root != NULL){
+				Node* cur_node = root->get_contracted_node_with_prenum(pre_num);
+				if(cur_node)
+					return cur_node;
 			}
 		}
 		return NULL;
