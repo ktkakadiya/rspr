@@ -111,12 +111,12 @@ int rSPR_branch_and_bound_hlpr(Forest *T1, Forest *T2, int k,
 		set<SiblingPair> *sibling_pairs, list<Node *> *singletons, bool cut_b_only,
 		list<pair<Forest,Forest> > *AFs, list<Node *> *protected_stack,
 		int *num_ties, Node *prev_T1_a, Node *prev_T1_c);
-bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
+void rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
 	Node *T2_ab, bool balanced, bool multi_b1, bool multi_b2, Node *T2_d, int &best_k);
-bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
+void rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
@@ -4764,7 +4764,7 @@ cout << "  ";
 	return k;
 }
 
-bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
+void rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_c, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
@@ -4839,7 +4839,7 @@ bool rspr_branch_and_bound_cut_a_hlpr(Forest *T1, Forest *T2, int k,
 	}
 }
 
-bool rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
+void rspr_branch_and_bound_cut_c_hlpr(Forest *T1, Forest *T2, int k,
 	set<SiblingPair> *sibling_pairs, list<Node *> *singletons, list<pair<Forest,Forest> > *AFs,
 	list<Node *> *protected_stack, int *num_ties, Node *T1_a, Node *T2_a, Node *T2_b, Node* T2_c,
 	bool cut_a_only, bool cut_b_only, bool cut_c_only, int path_length, UndoMachine *um,
