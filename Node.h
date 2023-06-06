@@ -519,15 +519,15 @@ class Node {
 	Node* get_contracted_node_with_prenum(int pre_num) {
 		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())
 			return NULL;
-		if(this->get_edge_pre_start() == pre_num || this->get_preorder_number() == pre_num )
+		if(this->get_edge_pre_start() <= pre_num && this->get_preorder_number() >= pre_num )
 			return this;
 					
-		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() == pre_num
-											|| this->contracted_lc->get_preorder_number() == pre_num)){
+		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() <= pre_num
+											&& this->contracted_lc->get_preorder_number() >= pre_num)){
 			return contracted_lc;
 		}
-		if(this->contracted_rc != NULL && (this->contracted_rc->get_edge_pre_start() == pre_num
-											|| this->contracted_rc->get_preorder_number() == pre_num)){
+		if(this->contracted_rc != NULL && (this->contracted_rc->get_edge_pre_start() <= pre_num
+											&& this->contracted_rc->get_preorder_number() >= pre_num)){
 			return contracted_rc;
 		}
 

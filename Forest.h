@@ -253,8 +253,8 @@ class Forest {
 	int get_component_index_with_prenum(int pre_num) {
 		for(int i=0; i<components.size(); i++){
 			Node *root = components[i];
-			if (root != NULL && (root->get_edge_pre_start() == pre_num
-								|| root->get_preorder_number() == pre_num)){
+			if (root != NULL && (root->get_edge_pre_start() <= pre_num
+								&& root->get_preorder_number() >= pre_num)){
 				return i;
 			}
 		}
