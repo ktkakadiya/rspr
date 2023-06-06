@@ -5051,6 +5051,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 		//F2.print_components();
 	
 	ClusterMergeForest* cluster_merge_forest = NULL;
+	int cur_cluster_index = 0;
 	if (do_cluster) {
 		sync_interior_twins(&F1, &F2);
 		cluster_points = find_cluster_points(&F1, &F2);
@@ -5091,8 +5092,10 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 				continue;
 
 			if(ALL_MERGED_MAFS && cluster_merge_forest != NULL){
+				cur_cluster_index++;
 				cluster_merge_forest->assign_cluster_parent(n->get_preorder_number(), 
-															twin->get_preorder_number());
+															twin->get_preorder_number(),
+															cur_cluster_index);
 			}
 
 			/*cout << "Cluster prenums " << endl;
@@ -5278,7 +5281,10 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 						}
 					}
 					if(ALL_MERGED_MAFS && cluster_merge_forest) {
-						cluster_merge_forest->update_merged_afs(i, num_clusters, &extAFs);
+						bool has_cluster_node = true;
+						if (f1t.contains_rho())
+							has_cluster_node = false;
+						cluster_merge_forest->update_merged_afs(i, num_clusters, &extAFs, has_cluster_node);
 					}
 					if ( i < num_clusters - 1) {
 						F1.join_cluster(i, &f1t);
