@@ -156,8 +156,8 @@ class ClusterMergeForest {
                 Forest lF2 = lower_maf_pair.second;		
                 Forest* merged_maf1 = merge_agreement_forests(&uF1, &lF1, has_sep_comp, lower_cluster_prenum_f1);
                 Forest* merged_maf2 = merge_agreement_forests(&uF2, &lF2, has_sep_comp, lower_cluster_prenum_f2);
-                merged_maf1->print_components();
-                merged_maf2->print_components();
+                //merged_maf1->print_components();
+                //merged_maf2->print_components();
                 merged_mafs.push_back(make_pair(Forest(merged_maf1), Forest(merged_maf2)));
             }
         }
