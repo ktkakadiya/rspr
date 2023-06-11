@@ -124,7 +124,7 @@ class ClusterMergeForest {
         cluster_prenums_f1[cur_cluster_index] = cluster_node_prenum;
         cluster_prenums_f2[cur_cluster_index] = cluster_node_twin_prenum;
 
-        cout << "Cluster F1 prenums " << endl;
+        /*cout << "Cluster F1 prenums " << endl;
         for(auto it=cluster_prenums_f1.begin(); it != cluster_prenums_f1.end(); it++){
             cout << " " << *it;
         }
@@ -138,10 +138,9 @@ class ClusterMergeForest {
         for(auto it=cluster_parent_index.begin(); it != cluster_parent_index.end(); it++){
             cout << " " << *it;
         }
-        cout << endl;
+        cout << endl;*/
     }
 
-    
     MergedSolution* merge_agreement_forests(Forest *upper_forest, Forest *lower_forest, 
                                         bool has_sep_comp, int lower_cluster_prenum,
                                         bool has_cluster_node) {
@@ -274,8 +273,8 @@ class ClusterMergeForest {
                 if(bValid){
                     Forest *merged_maf1 = merged_soln1->forest;
                     Forest *merged_maf2 = merged_soln2->forest;
-                    merged_maf1->print_components();
-                    merged_maf2->print_components();
+                    //merged_maf1->print_components();
+                    //merged_maf2->print_components();
                     merged_mafs.push_back(make_pair(Forest(merged_maf1), Forest(merged_maf2)));
                 }
             }
