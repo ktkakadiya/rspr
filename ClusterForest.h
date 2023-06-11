@@ -116,6 +116,7 @@ class ClusterForest: public Forest {
 			if (cluster_parent->parent() != NULL ||
 					!((cluster_parent->lchild() && cluster_parent->lchild()->get_name() == "X")
 					|| (cluster_parent->rchild() && cluster_parent->rchild()->get_name() == "X")))
+				//Contract node if other child is not a cluster
 				cluster_parent->contract(true);
 		}
 		else {

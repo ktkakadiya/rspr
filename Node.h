@@ -423,7 +423,9 @@ class Node {
 
 	// Replace contracted child node
 	void replace_contracted_child(Node *cur_node, Node *new_node){
-		new_node->contracted = true;
+		if(new_node)
+			new_node->contracted = true;
+		
 		if (contracted_lc != NULL && contracted_lc == cur_node) {
 			contracted_lc->delete_tree();
 			contracted_lc = new_node;
@@ -431,6 +433,49 @@ class Node {
 		else if(contracted_rc != NULL && contracted_rc == cur_node) {
 			contracted_rc->delete_tree();
 			contracted_rc = new_node;
+		}
+	}
+
+	// place contracted child node
+	void place_contracted_child(Node *new_node){
+		if(!new_node){
+			return;
+		}
+
+		if(this->is_leaf()){
+			if(this->is_contracted()){
+				Node* new_parent = this->expand_contracted_edge(this);
+				if(!new_parent){
+					cout << "Failed to expand contracted edge!" << endl;
+					return;
+				}
+				new_node->contracted = true;	
+				Node* new_node_p = new Node(*new_node, new_parent);
+				Node* cur_node = new_parent->get_contracted_lc();
+				if(cur_node->get_preorder_number() < new_node_p->get_preorder_number()){
+					new_parent->set_contracted_rc(new_node_p);
+					cur_node->set_edge_pre_end(new_node_p->get_edge_pre_start()-1);
+				}
+				else{
+					new_parent->set_contracted_lc(new_node_p);
+					new_parent->set_contracted_rc(cur_node);
+					cur_node->set_edge_pre_start(new_node_p->get_edge_pre_end()+1);
+				}
+			}
+			else{
+				Node* new_parent = this->expand_normal_edge(this);
+				if(!new_parent){
+					cout << "Failed to expand normal edge!" << endl;
+					return;
+				}
+				Node* cur_node = new_parent->lchild();
+				if(cur_node->get_preorder_number() < new_node->get_preorder_number()){
+					new_parent->add_child(new_node);
+				}
+				else{
+					new_parent->insert_child(cur_node, new_node);
+				}
+			}
 		}
 	}
 
@@ -515,11 +560,11 @@ class Node {
 		return rc;
 	}
 */
-	// Get node with given pre_num
+	// Get contracted node with given pre_num
 	Node* get_contracted_node_with_prenum(int pre_num) {
 		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())
 			return NULL;
-		if(this->get_edge_pre_start() <= pre_num && this->get_preorder_number() >= pre_num )
+		if(this->get_edge_pre_start() <= pre_num && this->get_preorder_number() >= pre_num)
 			return this;
 					
 		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() <= pre_num
@@ -538,6 +583,32 @@ class Node {
 				return cur_node;
 		}
 		
+		return NULL;
+	}
+
+	// Get node with given pre_num
+	Node* get_node_with_prenum(int pre_num) {
+		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())
+			return NULL;
+
+		list<Node *>::iterator c;
+		for(c = children.begin(); c != children.end(); c++) {
+			Node* cur_node = (*c)->get_node_with_prenum(pre_num);
+			if(cur_node)
+				return cur_node;
+		}
+
+		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() <= pre_num
+											&& this->contracted_lc->get_edge_pre_end() >= pre_num)){
+			return contracted_lc;
+		}
+		if(this->contracted_rc != NULL && (this->contracted_rc->get_edge_pre_start() <= pre_num
+											&& this->contracted_rc->get_edge_pre_end() >= pre_num)){
+			return contracted_rc;
+		}
+		
+		if(this->get_edge_pre_start() <= pre_num && this->get_edge_pre_end() >= pre_num)
+			return this;
 		return NULL;
 	}
 
@@ -2450,6 +2521,70 @@ Node *expand_children_out(list<Node*> nodes) {
   new_child->set_preorder_number(min_preorder);
   add_child(new_child);
   return new_child;
+}
+
+Node *expand_contracted_edge(Node *n) {
+	if (p != NULL) {
+		Node *old_p = p;
+		cut_parent();
+
+		Node *new_p = new Node();
+		new_p->contracted = true;
+		new_p->set_contracted_lc(new Node(*n, new_p));
+
+		if(old_p->contracted_lc == NULL){
+			old_p->set_contracted_lc(new_p);
+		}
+		else {
+			old_p->set_contracted_rc(new_p);
+		}
+		return new_p;
+	}
+	else {
+		Node *new_p = new Node();
+		new_p->contracted = true;
+		new_p->set_contracted_lc(new Node(*n, new_p));
+		return new_p;
+	}
+}
+
+Node *expand_normal_edge(Node *n) {
+	if (p != NULL) {
+		Node *old_p = p;
+		cut_parent();
+		Node *new_p = new Node();
+		new_p->add_child(n);
+		old_p->add_child(new_p);
+		return new_p;
+	}
+	else {
+		Node *new_child = new Node(name);
+		Node *old_lc = lchild();
+		Node *old_rc = rchild();
+
+		if(old_lc){
+			old_lc->cut_parent();
+			new_child->add_child(old_lc);
+		}
+		if(old_rc){
+			old_rc->cut_parent();
+			new_child->add_child(old_rc);
+		}
+
+		new_child->contracted_lc = contracted_lc;
+		if (contracted_lc != NULL)
+			contracted_lc->p = new_child;
+		new_child->contracted_rc = contracted_rc;
+		if (contracted_rc != NULL)
+			contracted_rc->p = new_child;
+
+		new_child->set_preorder_number(this->get_preorder_number());
+		name = "";
+		contracted_lc = NULL;
+		contracted_rc = NULL;
+		add_child(new_child);
+		return this;
+	}
 }
 
 Node *expand_parent_edge(Node *n) {

@@ -31,7 +31,7 @@ along with rspr.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************/
 
 #define RSPR
-//#define DEBUG 1
+#define DEBUG 1
 //#define DEBUG_CONTRACTED 1
 //#define DEBUG_APPROX 1
 //#define DEBUG_CLUSTERS 1
@@ -5284,7 +5284,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 						bool has_cluster_node = true;
 						if (f1t.contains_rho())
 							has_cluster_node = false;
-						cluster_merge_forest->update_merged_afs(i, num_clusters, &extAFs, has_cluster_node);
+						cluster_merge_forest->update_merged_forests(i, num_clusters, &extAFs, has_cluster_node);
 					}
 					if ( i < num_clusters - 1) {
 						F1.join_cluster(i, &f1t);

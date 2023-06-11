@@ -250,6 +250,20 @@ class Forest {
 	 * @param pre_num 
 	 * @return
 	 */
+	Node* get_component_with_prenum(int pre_num) {
+		int idx = this->get_component_index_with_prenum(pre_num);
+		if(idx >= 0){
+			return components[idx];
+		}
+		return NULL;
+	}
+
+	/**
+	 * @brief Get component with given preorder number as root index
+	 * 
+	 * @param pre_num 
+	 * @return
+	 */
 	int get_component_index_with_prenum(int pre_num) {
 		for(int i=0; i<components.size(); i++){
 			Node *root = components[i];
@@ -293,6 +307,19 @@ class Forest {
 			Node *root = *it;
 			if (root != NULL){
 				Node* cur_node = root->get_contracted_node_with_prenum(pre_num);
+				if(cur_node)
+					return cur_node;
+			}
+		}
+		return NULL;
+	}
+
+	Node* get_best_node_with_prenum(int pre_num){
+		vector<Node *>::iterator it = components.begin();
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root != NULL){
+				Node* cur_node = root->get_node_with_prenum(pre_num);
 				if(cur_node)
 					return cur_node;
 			}
