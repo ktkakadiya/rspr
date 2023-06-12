@@ -211,6 +211,10 @@ class Forest {
 	}
 
 	string add_vec_components(vector<string> *vecComponents) {
+		return this->add_vec_components(vecComponents, true);
+	}
+
+	string add_vec_components(vector<string> *vecComponents, bool bConsiderRho) {
 		string compOrder;
 		string strComponent;
 		vector<int> comp_indx;
@@ -218,6 +222,9 @@ class Forest {
 		vector<Node *>::iterator it = components.begin();
 		for(it = components.begin(); it != components.end(); it++) {
 			Node *root = *it;
+			if(!bConsiderRho && root != NULL && root->str() == "p")
+				continue;
+
 			if (root == NULL)
 				strComponent = "!";
 			else if (root->is_leaf() && root->str() == "")

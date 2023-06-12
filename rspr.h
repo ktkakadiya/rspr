@@ -5284,7 +5284,22 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 						bool has_cluster_node = true;
 						if (f1t.contains_rho())
 							has_cluster_node = false;
-						cluster_merge_forest->update_merged_forests(i, num_clusters, &extAFs, has_cluster_node);
+
+						vector<int> rho_indexes = cluster_merge_forest->get_forests_with_rho(extAFs);
+						if(rho_indexes.size() == 0 && i < num_clusters - 1){
+							//Run with one more distance
+							Forest f1t1 = Forest(f1);
+							Forest f2t1 = Forest(f2);
+							f1t1.unsync();
+							f2t1.unsync();
+							f1t1.add_rho();
+							f2t1.add_rho();
+
+							list<pair<Forest,Forest>> extRhoAFs = list<pair<Forest,Forest>>();
+							int new_k = rSPR_branch_and_bound(&f1t1, &f2t1, k, &extRhoAFs);
+							cluster_merge_forest->add_non_duplicate_maf(&extAFs, &extRhoAFs);
+						}
+						cluster_merge_forest->update_merged_forests(i, num_clusters, &extAFs, has_cluster_node, exact_spr);
 					}
 					if ( i < num_clusters - 1) {
 						F1.join_cluster(i, &f1t);

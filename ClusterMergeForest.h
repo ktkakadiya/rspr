@@ -76,6 +76,9 @@ class ClusterMergeForest {
         //Preorder numbers of clusters in F2
         vector<int> cluster_prenums_f2;
 
+        //Start index of clusters extra MAFs that are added with k+1 distance
+        vector<int> cluster_exact_spr;
+
         //Map of merged MAFs of clusters at given index
 	    map<int, list<pair<Forest,Forest>>> map_cluster_mafs;
 
@@ -95,6 +98,7 @@ class ClusterMergeForest {
 		cluster_parent_index.assign(cluster_size, -1);
         cluster_prenums_f1.assign(cluster_size, -1);
         cluster_prenums_f2.assign(cluster_size, -1);
+        cluster_exact_spr.assign(cluster_size, 0);
         map_has_cluster_node.assign(cluster_size, true);
 	}
 
@@ -103,6 +107,7 @@ class ClusterMergeForest {
 		cluster_parent_index.clear();
 		cluster_prenums_f1.clear();
 		cluster_prenums_f2.clear();
+		cluster_exact_spr.clear();
         map_cluster_mafs.clear();
         map_has_cluster_node.clear();
 	}
@@ -226,6 +231,7 @@ class ClusterMergeForest {
                         Node* lower_clstr_parent = cluster_node->parent();
                         if(lower_clstr_parent != NULL){
                             lower_clstr_parent->replace_contracted_child(cluster_node, NULL);
+                            lower_clstr_parent->contract(true);
                         }
                     }
                     else{
@@ -241,7 +247,7 @@ class ClusterMergeForest {
     list<pair<Forest,Forest>> merge_cluster_forests(list<pair<Forest,Forest>> upper_cluster_mafs,
                                                     list<pair<Forest,Forest>> lower_cluster_mafs,
                                                     int lower_cluster_prenum_f1, int lower_cluster_prenum_f2,
-                                                    bool has_cluster_node, vector<int> rho_indexes){
+                                                    bool has_cluster_node, int total_spr){
         list<pair<Forest,Forest>> merged_mafs = list<pair<Forest,Forest>>();
         for (const auto& upper_maf_pair : upper_cluster_mafs) {
             Forest uF1 = upper_maf_pair.first;
@@ -268,6 +274,11 @@ class ClusterMergeForest {
                 else if(merged_soln1->merging_point && merged_soln2->merging_point &&
                                 merged_soln1->merging_point->get_twin() == merged_soln2->merging_point){
                     bValid = true;
+                }
+
+                if(merged_soln1->forest->num_components() != total_spr+1 || 
+                        merged_soln2->forest->num_components() != total_spr+1){
+                    bValid = false;
                 }
 
                 if(bValid){
@@ -303,7 +314,7 @@ class ClusterMergeForest {
      * @param extAFs 
      */
     void update_merged_forests(int cluster_idx, int num_clusters, list<pair<Forest,Forest>> *extAFs,
-                                                                bool has_cluster_node){
+                                                                bool has_cluster_node, int exact_spr){
         int child_cluster_index = cluster_idx - 1;
         int cur_parent_idx = cluster_idx;
         if (cluster_idx >= num_clusters - 1) {
@@ -311,17 +322,15 @@ class ClusterMergeForest {
         }
         map_cluster_mafs[cluster_idx] = *extAFs;
         map_has_cluster_node[cluster_idx] = has_cluster_node;
+        cluster_exact_spr[cluster_idx] = exact_spr;
         while(child_cluster_index > 0){
             if(cluster_parent_index[child_cluster_index] == cur_parent_idx){
-                vector<int> rho_indexes = get_forests_with_rho(map_cluster_mafs[child_cluster_index]);
-                if(rho_indexes.size() == 0){
-                    //Run with one more distance
-                }
+                int total_spr = cluster_exact_spr[cluster_idx] + cluster_exact_spr[child_cluster_index];
                 map_cluster_mafs[cluster_idx] = merge_cluster_forests(map_cluster_mafs[cluster_idx],
                                     map_cluster_mafs[child_cluster_index],
                                     cluster_prenums_f1[child_cluster_index],
                                     cluster_prenums_f2[child_cluster_index],
-                                    map_has_cluster_node[child_cluster_index], rho_indexes);
+                                    map_has_cluster_node[child_cluster_index], total_spr);
             }
             child_cluster_index--;
         }
@@ -354,6 +363,23 @@ class ClusterMergeForest {
             }
         }
         cout << "FOUND MERGED UNIQUE ANSWERS " << setMAFs.size() << endl;
+    }
+
+    void add_non_duplicate_maf(list<pair<Forest,Forest>> *extAFs, list<pair<Forest,Forest>> *extRhoAFs){
+        vector<string> vecComponents;
+        unordered_set<string> setMAFs;
+        for (list<pair<Forest,Forest> >::iterator x = extAFs->begin(); x != extAFs->end(); x++) {
+            string strMAF = (x->first).add_vec_components(&vecComponents);
+            setMAFs.insert(strMAF);
+        }
+
+        for (list<pair<Forest,Forest> >::iterator x = extRhoAFs->begin(); x != extRhoAFs->end(); x++) {
+            string strMAF = (x->first).add_vec_components(&vecComponents, false);
+            std::pair<std::unordered_set<string>::iterator, bool> insertResult = setMAFs.insert(strMAF);
+            if(insertResult.second){
+                extAFs->push_back(make_pair(x->first, x->second));
+            }
+        }
     }
 };
 
