@@ -326,6 +326,7 @@ class ClusterMergeForest {
         while(child_cluster_index > 0){
             if(cluster_parent_index[child_cluster_index] == cur_parent_idx){
                 int total_spr = cluster_exact_spr[cluster_idx] + cluster_exact_spr[child_cluster_index];
+                cluster_exact_spr[cluster_idx] = total_spr;
                 map_cluster_mafs[cluster_idx] = merge_cluster_forests(map_cluster_mafs[cluster_idx],
                                     map_cluster_mafs[child_cluster_index],
                                     cluster_prenums_f1[child_cluster_index],
