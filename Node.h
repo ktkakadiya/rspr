@@ -560,6 +560,25 @@ class Node {
 		return rc;
 	}
 */
+		// Get contracted node with given pre_num range
+	Node* get_contracted_node_with_prenum_range(pair<int, int> prenum_range) {
+		if(this->get_edge_pre_start() > prenum_range.first || this->get_edge_pre_end() < prenum_range.second){
+			return NULL;
+		}
+
+		if(this->contracted_lc != NULL && this->contracted_rc != NULL){
+			this->undo_contract_sibling_pair();
+			list<Node *>::iterator c;
+			for(c = children.begin(); c != children.end(); c++) {
+				Node* cur_node = (*c)->get_contracted_node_with_prenum_range(prenum_range);
+				if(cur_node)
+					return cur_node;
+			}
+		}
+		this->contract_sibling_pair_undoable();
+		return this;
+	}
+
 	// Get contracted node with given pre_num
 	Node* get_contracted_node_with_prenum(int pre_num) {
 		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())

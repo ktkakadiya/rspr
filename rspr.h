@@ -5093,9 +5093,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 
 			if(ALL_MERGED_MAFS && cluster_merge_forest != NULL){
 				cur_cluster_index++;
-				cluster_merge_forest->assign_cluster_parent(n->get_preorder_number(), 
-															twin->get_preorder_number(),
-															cur_cluster_index);
+				cluster_merge_forest->assign_cluster_parent(n, twin, cur_cluster_index);
 			}
 
 			/*cout << "Cluster prenums " << endl;

@@ -308,12 +308,12 @@ class Forest {
 		}
 	}
 
-	Node* get_contracted_node_with_prenum(int pre_num){
+	Node* get_contracted_node_with_prenum_range(pair<int, int> prenum_range){
 		vector<Node *>::iterator it = components.begin();
 		for(it = components.begin(); it != components.end(); it++) {
 			Node *root = *it;
 			if (root != NULL){
-				Node* cur_node = root->get_contracted_node_with_prenum(pre_num);
+				Node* cur_node = root->get_contracted_node_with_prenum_range(prenum_range);
 				if(cur_node)
 					return cur_node;
 			}

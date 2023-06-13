@@ -73,8 +73,14 @@ class ClusterMergeForest {
         //Preorder numbers of clusters in F1
         vector<int> cluster_prenums_f1;
 
+        //Preorder numbers of clusters in F1
+        vector<pair<int, int>> cluster_edge_interval_f1;
+
         //Preorder numbers of clusters in F2
         vector<int> cluster_prenums_f2;
+
+        //Preorder numbers of clusters in F2
+        vector<pair<int, int>> cluster_edge_interval_f2;
 
         //Start index of clusters extra MAFs that are added with k+1 distance
         vector<int> cluster_exact_spr;
@@ -97,7 +103,9 @@ class ClusterMergeForest {
 	void init(int cluster_size) {
 		cluster_parent_index.assign(cluster_size, -1);
         cluster_prenums_f1.assign(cluster_size, -1);
+        cluster_edge_interval_f1.assign(cluster_size, make_pair(-1, -1));
         cluster_prenums_f2.assign(cluster_size, -1);
+        cluster_edge_interval_f2.assign(cluster_size, make_pair(-1, -1));
         cluster_exact_spr.assign(cluster_size, 0);
         map_has_cluster_node.assign(cluster_size, true);
 	}
@@ -106,7 +114,9 @@ class ClusterMergeForest {
 		unsolved_cluster_prenums.clear();
 		cluster_parent_index.clear();
 		cluster_prenums_f1.clear();
+		cluster_edge_interval_f1.clear();
 		cluster_prenums_f2.clear();
+		cluster_edge_interval_f2.clear();
 		cluster_exact_spr.clear();
         map_cluster_mafs.clear();
         map_has_cluster_node.clear();
@@ -119,7 +129,9 @@ class ClusterMergeForest {
      * @param cluster_node_twin_prenum 
      * @param cur_cluster_index
      */
-    void assign_cluster_parent(int cluster_node_prenum, int cluster_node_twin_prenum, int cur_cluster_index) {
+    void assign_cluster_parent(Node* node, Node* twin, int cur_cluster_index) {
+        int cluster_node_prenum = node->get_preorder_number();
+        int cluster_node_twin_prenum = twin->get_preorder_number();
         while(unsolved_cluster_prenums.size() > 0 &&
                             unsolved_cluster_prenums.back().second > cluster_node_prenum){
             cluster_parent_index[unsolved_cluster_prenums.back().first] = cur_cluster_index;
@@ -128,6 +140,10 @@ class ClusterMergeForest {
         unsolved_cluster_prenums.push_back(make_pair(cur_cluster_index, cluster_node_prenum));
         cluster_prenums_f1[cur_cluster_index] = cluster_node_prenum;
         cluster_prenums_f2[cur_cluster_index] = cluster_node_twin_prenum;
+        cluster_edge_interval_f1[cur_cluster_index] = make_pair(node->get_edge_pre_start(),
+                                                                node->get_edge_pre_end());
+        cluster_edge_interval_f2[cur_cluster_index] = make_pair(twin->get_edge_pre_start(),
+                                                                twin->get_edge_pre_end());
 
         /*cout << "Cluster F1 prenums " << endl;
         for(auto it=cluster_prenums_f1.begin(); it != cluster_prenums_f1.end(); it++){
@@ -148,6 +164,7 @@ class ClusterMergeForest {
 
     MergedSolution* merge_agreement_forests(Forest *upper_forest, Forest *lower_forest, 
                                         bool has_sep_comp, int lower_cluster_prenum,
+                                        pair<int, int> lower_cluster_range,
                                         bool has_cluster_node) {
 
         Forest* merged_forest = new Forest(upper_forest);
@@ -205,7 +222,7 @@ class ClusterMergeForest {
             }
         }
         else if(has_cluster_node){
-            Node* cluster_node = merged_forest->get_contracted_node_with_prenum(lower_cluster_prenum);
+            Node* cluster_node = merged_forest->get_contracted_node_with_prenum_range(lower_cluster_range);
             if(!cluster_node){
                 cout << "Cluster node not found 2!" << endl;
                 return soln;
@@ -217,8 +234,11 @@ class ClusterMergeForest {
                 if(!has_rho){
                     if(i == 0){		
                         Node* lower_clstr_parent = cluster_node->parent();
-                        Node* lower_comp = new Node(**it, lower_clstr_parent);
                         if(lower_clstr_parent != NULL){
+                            if(!cluster_node->is_contracted()){
+                                lower_clstr_parent->contract_sibling_pair_undoable();
+                            }
+                            Node* lower_comp = new Node(**it, lower_clstr_parent);
                             lower_clstr_parent->replace_contracted_child(cluster_node, lower_comp);
                         }
                     }
@@ -245,9 +265,10 @@ class ClusterMergeForest {
     }
 
     list<pair<Forest,Forest>> merge_cluster_forests(list<pair<Forest,Forest>> upper_cluster_mafs,
-                                                    list<pair<Forest,Forest>> lower_cluster_mafs,
-                                                    int lower_cluster_prenum_f1, int lower_cluster_prenum_f2,
-                                                    bool has_cluster_node, int total_spr){
+            list<pair<Forest,Forest>> lower_cluster_mafs, int lower_cluster_prenum_f1, 
+            pair<int, int> lower_cluster_range_f1, int lower_cluster_prenum_f2,
+            pair<int, int> lower_cluster_range_f2, bool has_cluster_node, int total_spr){
+
         list<pair<Forest,Forest>> merged_mafs = list<pair<Forest,Forest>>();
         for (const auto& upper_maf_pair : upper_cluster_mafs) {
             Forest uF1 = upper_maf_pair.first;
@@ -263,9 +284,11 @@ class ClusterMergeForest {
                 Forest lF2 = lower_maf_pair.second;
 
                 MergedSolution *merged_soln1 = merge_agreement_forests(&uF1, &lF1, has_sep_comp, 
-                                            lower_cluster_prenum_f1, has_cluster_node);
+                                                    lower_cluster_prenum_f1, lower_cluster_range_f1,
+                                                    has_cluster_node);
                 MergedSolution *merged_soln2 = merge_agreement_forests(&uF2, &lF2, has_sep_comp, 
-                                            lower_cluster_prenum_f2, has_cluster_node);
+                                                    lower_cluster_prenum_f2, lower_cluster_range_f2,
+                                                    has_cluster_node);
 
                 bool bValid = false;
                 if(!merged_soln1->merging_point && !merged_soln2->merging_point){
@@ -330,7 +353,9 @@ class ClusterMergeForest {
                 map_cluster_mafs[cluster_idx] = merge_cluster_forests(map_cluster_mafs[cluster_idx],
                                     map_cluster_mafs[child_cluster_index],
                                     cluster_prenums_f1[child_cluster_index],
+                                    cluster_edge_interval_f1[child_cluster_index],
                                     cluster_prenums_f2[child_cluster_index],
+                                    cluster_edge_interval_f2[child_cluster_index],
                                     map_has_cluster_node[child_cluster_index], total_spr);
             }
             child_cluster_index--;
