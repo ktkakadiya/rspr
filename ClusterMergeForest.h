@@ -206,7 +206,7 @@ class ClusterMergeForest {
                     return soln;
                 }
 
-                soln->set_merging_point(cluster_node);
+                soln->set_merging_point(new Node(*cluster_node));
                 vector<Node *>::iterator it;
                 int i=0;
                 for(it = components.begin(); it != components.end(); it++) {
