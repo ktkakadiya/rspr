@@ -206,8 +206,7 @@ class ClusterMergeForest {
                     return soln;
                 }
 
-                Node* mergin_point = upper_forest->get_best_node_with_prenum(lower_cluster_prenum);
-                soln->set_merging_point(mergin_point);
+                soln->set_merging_point(cluster_node);
                 vector<Node *>::iterator it;
                 int i=0;
                 for(it = components.begin(); it != components.end(); it++) {
@@ -273,8 +272,7 @@ class ClusterMergeForest {
         for (const auto& upper_maf_pair : upper_cluster_mafs) {
             Forest uF1 = upper_maf_pair.first;
             Forest uF2 = upper_maf_pair.second;
-            sync_twins(&uF1, &uF2);			
-
+            
             bool has_sep_comp = false;
             if(has_cluster_node)
                 has_sep_comp = uF1.has_component_with_prenum(lower_cluster_prenum_f1);
@@ -294,10 +292,16 @@ class ClusterMergeForest {
                 if(!merged_soln1->merging_point && !merged_soln2->merging_point){
                     bValid = true;
                 }
-                else if(merged_soln1->merging_point && merged_soln2->merging_point &&
-                                merged_soln1->merging_point->get_twin() == merged_soln2->merging_point){
-                    bValid = true;
-                }
+                else if(merged_soln1->merging_point && merged_soln2->merging_point){
+                    Forest mf1 = Forest(merged_soln1->merging_point);
+                    Forest mf2 = Forest(merged_soln2->merging_point);
+                    sync_twins(&mf1, &mf2);
+                    Node* merging_point1 = mf1.get_component(0);
+                    Node* merging_point2 = mf2.get_component(0);
+                    if(merging_point1->get_twin() == merging_point2){
+                        bValid = true;
+                    }
+                }  
 
                 if(merged_soln1->forest->num_components() != total_spr+1 || 
                         merged_soln2->forest->num_components() != total_spr+1){
