@@ -292,15 +292,9 @@ class ClusterMergeForest {
                 if(!merged_soln1->merging_point && !merged_soln2->merging_point){
                     bValid = true;
                 }
-                else if(merged_soln1->merging_point && merged_soln2->merging_point){
-                    Forest mf1 = Forest(merged_soln1->merging_point);
-                    Forest mf2 = Forest(merged_soln2->merging_point);
-                    sync_twins(&mf1, &mf2);
-                    Node* merging_point1 = mf1.get_component(0);
-                    Node* merging_point2 = mf2.get_component(0);
-                    if(merging_point1->get_twin() == merging_point2){
+                else if(is_valid_merging_point(merged_soln1->merging_point, 
+                                                merged_soln2->merging_point)){
                         bValid = true;
-                    }
                 }  
 
                 if(merged_soln1->forest->num_components() != total_spr+1 || 
@@ -410,6 +404,44 @@ class ClusterMergeForest {
                 extAFs->push_back(make_pair(x->first, x->second));
             }
         }
+    }
+
+    /**
+     * @brief Check whether givem merging point is valid
+     * 
+     * @param merging_point1 Merging point MAF1
+     * @param merging_point2 Merging point MAF2
+     * @return true 
+     * @return false 
+     */
+    bool is_valid_merging_point(Node* merging_point1, Node* merging_point2){
+        if(merging_point1 && merging_point2){
+
+            //Handles case where one node is intenal and other is a leaf node
+            bool mp1_internal_node = false;
+            if(merging_point1->get_contracted_lc() && merging_point1->get_contracted_rc()){
+                merging_point1->undo_contract_sibling_pair();
+                mp1_internal_node = true;
+            }
+            bool mp2_internal_node = false;
+            if(merging_point2->get_contracted_lc()
+                                 && merging_point2->get_contracted_rc()){
+                mp2_internal_node = true;
+            }
+
+            if((mp1_internal_node && mp2_internal_node) || (!mp1_internal_node && !mp2_internal_node)){
+                Forest mf1 = Forest(merging_point1);
+                Forest mf2 = Forest(merging_point2);
+                sync_twins(&mf1, &mf2);
+
+                Node* mp1 = mf1.get_component(0);
+                Node* mp2 = mf2.get_component(0);
+                if(mp1->get_twin() == mp2){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 };
 
