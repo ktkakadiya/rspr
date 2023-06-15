@@ -163,7 +163,7 @@ class ClusterMergeForest {
     }
 
     MergedSolution* merge_agreement_forests(Forest *upper_forest, Forest *lower_forest, 
-                                        bool has_sep_comp, int lower_cluster_prenum,
+                                        int sep_comp_idx, int lower_cluster_prenum,
                                         pair<int, int> lower_cluster_range,
                                         bool has_cluster_node) {
 
@@ -173,16 +173,16 @@ class ClusterMergeForest {
 
         MergedSolution *soln = new MergedSolution(merged_forest, NULL);
 
+        bool has_sep_comp = (sep_comp_idx >= 0);
         if(has_sep_comp){
-            
             //Update lower cluster root component preorder range
-            Node* upper_component = merged_forest->get_component_with_prenum(lower_cluster_prenum);
+            Node* upper_component = merged_forest->get_component(sep_comp_idx);
             if(upper_component && components.size() > 0 && components[0]->str() != "p"){
                 components[0]->set_preorder_number(upper_component->get_preorder_number());
                 components[0]->copy_edge_pre_interval(upper_component);
             }
 
-            merged_forest->remove_component_with_prenum(lower_cluster_prenum);
+            merged_forest->remove_component(sep_comp_idx);
             vector<Node *>::iterator it;	
             for(it = components.begin(); it != components.end(); it++) {
                 if ((*it)->str() != "p"){
@@ -200,7 +200,8 @@ class ClusterMergeForest {
                 }
             }
             else{
-                Node* cluster_node = merged_forest->get_best_node_with_prenum(lower_cluster_prenum);
+                Node* cluster_node = merged_forest->get_best_node_with_prenum_range(
+                                                lower_cluster_prenum, lower_cluster_range);
                 if(!cluster_node){
                     cout << "Cluster node not found 1!" << endl;
                     return soln;
@@ -273,18 +274,28 @@ class ClusterMergeForest {
             Forest uF1 = upper_maf_pair.first;
             Forest uF2 = upper_maf_pair.second;
             
-            bool has_sep_comp = false;
-            if(has_cluster_node)
-                has_sep_comp = uF1.has_component_with_prenum(lower_cluster_prenum_f1);
+            //Check whether upper cluster has separate component of lower cluster
+            int sep_comp_idx1 = -1;
+            int sep_comp_idx2 = -1;
+            if(has_cluster_node){
+                sep_comp_idx1 = uF1.get_component_index_with_prenum(lower_cluster_prenum_f1,
+                                            lower_cluster_range_f1.second);
+                sep_comp_idx2 = uF2.get_component_index_with_prenum(lower_cluster_prenum_f2,
+                                            lower_cluster_range_f2.second);
+                if((sep_comp_idx1 == -1 && sep_comp_idx2 != -1) || ((sep_comp_idx1 != -1 && sep_comp_idx2 == -1))){
+                    cout << "Either of cluster does not have separate component" << endl;
+                    continue;
+                }
+            }
 
             for (const auto& lower_maf_pair : lower_cluster_mafs) {
                 Forest lF1 = lower_maf_pair.first;
                 Forest lF2 = lower_maf_pair.second;
 
-                MergedSolution *merged_soln1 = merge_agreement_forests(&uF1, &lF1, has_sep_comp, 
+                MergedSolution *merged_soln1 = merge_agreement_forests(&uF1, &lF1, sep_comp_idx1, 
                                                     lower_cluster_prenum_f1, lower_cluster_range_f1,
                                                     has_cluster_node);
-                MergedSolution *merged_soln2 = merge_agreement_forests(&uF2, &lF2, has_sep_comp, 
+                MergedSolution *merged_soln2 = merge_agreement_forests(&uF2, &lF2, sep_comp_idx2, 
                                                     lower_cluster_prenum_f2, lower_cluster_range_f2,
                                                     has_cluster_node);
 

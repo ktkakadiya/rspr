@@ -579,32 +579,6 @@ class Node {
 		return this;
 	}
 
-	// Get contracted node with given pre_num
-	Node* get_contracted_node_with_prenum(int pre_num) {
-		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())
-			return NULL;
-		if(this->get_edge_pre_start() <= pre_num && this->get_preorder_number() >= pre_num)
-			return this;
-					
-		if(this->contracted_lc != NULL && (this->contracted_lc->get_edge_pre_start() <= pre_num
-											&& this->contracted_lc->get_preorder_number() >= pre_num)){
-			return contracted_lc;
-		}
-		if(this->contracted_rc != NULL && (this->contracted_rc->get_edge_pre_start() <= pre_num
-											&& this->contracted_rc->get_preorder_number() >= pre_num)){
-			return contracted_rc;
-		}
-
-		list<Node *>::iterator c;
-		for(c = children.begin(); c != children.end(); c++) {
-			Node* cur_node = (*c)->get_contracted_node_with_prenum(pre_num);
-			if(cur_node)
-				return cur_node;
-		}
-		
-		return NULL;
-	}
-
 	// Get node with given pre_num
 	Node* get_node_with_prenum(int pre_num) {
 		if (pre_num < this->get_edge_pre_start() || pre_num > this->get_edge_pre_end())

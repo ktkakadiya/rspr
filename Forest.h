@@ -257,79 +257,53 @@ class Forest {
 	 * @param pre_num 
 	 * @return
 	 */
-	Node* get_component_with_prenum(int pre_num) {
-		int idx = this->get_component_index_with_prenum(pre_num);
-		if(idx >= 0){
-			return components[idx];
-		}
-		return NULL;
-	}
-
-	/**
-	 * @brief Get component with given preorder number as root index
-	 * 
-	 * @param pre_num 
-	 * @return
-	 */
-	int get_component_index_with_prenum(int pre_num) {
+	int get_component_index_with_prenum(int pre_num, int comp_pre_end) {
 		for(int i=0; i<components.size(); i++){
 			Node *root = components[i];
-			if (root != NULL && (root->get_edge_pre_start() <= pre_num
-								&& root->get_preorder_number() >= pre_num)){
+			if (root != NULL && (root->get_preorder_number() >= pre_num
+								&& root->get_preorder_number() <= comp_pre_end)){
 				return i;
 			}
 		}
 		return -1;
 	}
 
-	/**
-	 * @brief Check whether forest has component with given preorder number as root
-	 * 
-	 * @param pre_num 
-	 * @return true 
-	 * @return false 
-	 */
-	bool has_component_with_prenum(int pre_num) {
-		if(get_component_index_with_prenum(pre_num) >= 0){
-			return true;
-		}
-		return false;
-	}
+	Node* get_best_component_for_prenum_range(pair<int, int> prenum_range){
+		int range_diff = -1;
+		Node* node_comp = NULL;
 
-	/**
-	 * @brief Remove component with given preorder number as root
-	 * 
-	 * @param pre_num  
-	 */
-	void remove_component_with_prenum(int pre_num) {
-		int idx = get_component_index_with_prenum(pre_num);
-		if(idx >= 0){
-			erase_components(idx, idx+1);
+		vector<Node *>::iterator it;
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			if (root != NULL && root->get_edge_pre_start() <= prenum_range.first 
+							&& root->get_edge_pre_end() >= prenum_range.second){
+				int cur_diff = (prenum_range.first - root->get_edge_pre_start())
+								+ (root->get_edge_pre_end() - prenum_range.second);
+				if(range_diff == -1 || cur_diff < range_diff){
+					range_diff = cur_diff;
+					node_comp = root;
+				}
+			}
 		}
+		return node_comp;
 	}
 
 	Node* get_contracted_node_with_prenum_range(pair<int, int> prenum_range){
-		vector<Node *>::iterator it = components.begin();
-		for(it = components.begin(); it != components.end(); it++) {
-			Node *root = *it;
-			if (root != NULL){
-				Node* cur_node = root->get_contracted_node_with_prenum_range(prenum_range);
-				if(cur_node)
-					return cur_node;
-			}
+		Node* node_comp = this->get_best_component_for_prenum_range(prenum_range);
+		if (node_comp != NULL){
+			Node* cur_node = node_comp->get_contracted_node_with_prenum_range(prenum_range);
+			if(cur_node)
+				return cur_node;
 		}
 		return NULL;
 	}
 
-	Node* get_best_node_with_prenum(int pre_num){
-		vector<Node *>::iterator it = components.begin();
-		for(it = components.begin(); it != components.end(); it++) {
-			Node *root = *it;
-			if (root != NULL){
-				Node* cur_node = root->get_node_with_prenum(pre_num);
-				if(cur_node)
-					return cur_node;
-			}
+	Node* get_best_node_with_prenum_range(int prenum, pair<int, int> prenum_range){
+		Node* node_comp = this->get_best_component_for_prenum_range(prenum_range);
+		if (node_comp != NULL){
+			Node* cur_node = node_comp->get_node_with_prenum(prenum);
+			if(cur_node)
+				return cur_node;
 		}
 		return NULL;
 	}
@@ -420,6 +394,12 @@ class Forest {
 	inline Node *get_component(int i) {
 		return components[i];
 	}
+	void remove_component(int i) {
+		if(i >= 0 && i < this->num_components()){
+			erase_components(i, i+1);
+		}
+	}
+
 	void set_component(int i, Node *head) {
 		components[i] = head;
 	}
