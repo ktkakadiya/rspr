@@ -50,14 +50,20 @@ class MergedSolution {
     public:
     Forest *forest;
     Node* merging_point;
+    int merging_point_depth;
 
-    MergedSolution(Forest* forest, Node* merging_point) {
+    MergedSolution(Forest* forest) {
         this->forest = forest;
-        this->merging_point = merging_point;   
+        this->merging_point = NULL;
+        this->merging_point_depth = -1;
     }
 
     void set_merging_point(Node* merging_point){
         this->merging_point = merging_point;
+    }
+    
+    void set_merging_point_depth(int merging_point_depth){
+        this->merging_point_depth = merging_point_depth;
     }
 };
 
@@ -171,7 +177,7 @@ class ClusterMergeForest {
         vector<Node *> components = lower_forest->components;
         bool has_rho = lower_forest->contains_rho();
 
-        MergedSolution *soln = new MergedSolution(merged_forest, NULL);
+        MergedSolution *soln = new MergedSolution(merged_forest);
 
         bool has_sep_comp = (sep_comp_idx >= 0);
         if(has_sep_comp){
@@ -200,14 +206,16 @@ class ClusterMergeForest {
                 }
             }
             else{
+                int node_depth = -1;
                 Node* cluster_node = merged_forest->get_best_node_with_prenum_range(
-                                                lower_cluster_prenum, lower_cluster_range);
+                                        lower_cluster_prenum, lower_cluster_range, node_depth);
                 if(!cluster_node){
                     cout << "Cluster node not found 1!" << endl;
                     return soln;
                 }
 
                 soln->set_merging_point(new Node(*cluster_node));
+                soln->set_merging_point_depth(node_depth);
                 vector<Node *>::iterator it;
                 int i=0;
                 for(it = components.begin(); it != components.end(); it++) {
@@ -227,17 +235,18 @@ class ClusterMergeForest {
                 cout << "Cluster node not found 2!" << endl;
                 return soln;
             }
-            
+        
+            Node* lower_clstr_parent = cluster_node->parent();
+            if(lower_clstr_parent && !cluster_node->is_contracted()){
+                lower_clstr_parent->contract_sibling_pair_undoable();
+            }
+
             vector<Node *>::iterator it;
             int i=0;
             for(it = components.begin(); it != components.end(); it++) {
                 if(!has_rho){
                     if(i == 0){		
-                        Node* lower_clstr_parent = cluster_node->parent();
                         if(lower_clstr_parent != NULL){
-                            if(!cluster_node->is_contracted()){
-                                lower_clstr_parent->contract_sibling_pair_undoable();
-                            }
                             Node* lower_comp = new Node(**it, lower_clstr_parent);
                             lower_clstr_parent->replace_contracted_child(cluster_node, lower_comp);
                         }
@@ -248,7 +257,6 @@ class ClusterMergeForest {
                 }
                 else{
                     if((*it)->str() == "p"){		
-                        Node* lower_clstr_parent = cluster_node->parent();
                         if(lower_clstr_parent != NULL){
                             lower_clstr_parent->replace_contracted_child(cluster_node, NULL);
                             lower_clstr_parent->contract(true);
@@ -303,9 +311,9 @@ class ClusterMergeForest {
                 if(!merged_soln1->merging_point && !merged_soln2->merging_point){
                     bValid = true;
                 }
-                else if(is_valid_merging_point(merged_soln1->merging_point, 
-                                                merged_soln2->merging_point)){
-                        bValid = true;
+                else if(is_valid_merging_point(merged_soln1->merging_point, merged_soln2->merging_point)
+                        && (merged_soln1->merging_point_depth == merged_soln2->merging_point_depth)){
+                    bValid = true;
                 }  
 
                 if(merged_soln1->forest->num_components() != total_spr+1 || 
@@ -427,7 +435,6 @@ class ClusterMergeForest {
      */
     bool is_valid_merging_point(Node* merging_point1, Node* merging_point2){
         if(merging_point1 && merging_point2){
-
             //Handles case where one node is intenal and other is a leaf node
             bool mp1_internal_node = false;
             if(merging_point1->get_contracted_lc() && merging_point1->get_contracted_rc()){
