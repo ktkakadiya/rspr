@@ -344,7 +344,7 @@ class Forest {
 	Node* get_best_node_with_prenum_range(int prenum, pair<int, int> prenum_range, int &node_depth){
 		Node* node_comp = this->get_best_component_for_prenum_range(prenum_range);
 		if (node_comp != NULL){
-			Node* cur_node = node_comp->get_node_with_prenum(prenum);
+			Node* cur_node = node_comp->get_contracted_node_with_prenum_range(prenum_range);
 			if(cur_node){
 				node_depth = (cur_node->get_depth() - node_comp->get_depth());
 				return cur_node;
