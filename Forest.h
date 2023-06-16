@@ -319,8 +319,11 @@ class Forest {
 				else{
 					if(root->get_contracted_lc() && root->get_contracted_rc()){
 						Node* contracted_lc = root->get_contracted_lc();
-						if(contracted_lc->get_edge_pre_start() > prenum_range.first 
-							|| contracted_lc->get_edge_pre_end() < prenum_range.second){
+						Node* contracted_rc = root->get_contracted_rc();
+						if((contracted_lc->get_edge_pre_start() > prenum_range.first 
+							|| contracted_lc->get_edge_pre_end() < prenum_range.second)
+							&& (contracted_rc->get_edge_pre_start() > prenum_range.first 
+							|| contracted_rc->get_edge_pre_end() < prenum_range.second)){
 							bValid = false;
 						}
 					}
