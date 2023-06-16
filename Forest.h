@@ -268,7 +268,7 @@ class Forest {
 		return -1;
 	}
 
-	Node* get_best_component_for_prenum_range(pair<int, int> prenum_range){
+	Node* get_best_contracted_component_for_prenum_range(pair<int, int> prenum_range){
 		int range_diff = -1;
 		Node* node_comp = NULL;
 
@@ -289,13 +289,54 @@ class Forest {
 	}
 
 	Node* get_contracted_node_with_prenum_range(pair<int, int> prenum_range){
-		Node* node_comp = this->get_best_component_for_prenum_range(prenum_range);
+		Node* node_comp = this->get_best_contracted_component_for_prenum_range(prenum_range);
 		if (node_comp != NULL){
 			Node* cur_node = node_comp->get_contracted_node_with_prenum_range(prenum_range);
 			if(cur_node)
 				return cur_node;
 		}
 		return NULL;
+	}
+	
+	Node* get_best_component_for_prenum_range(pair<int, int> prenum_range){
+		int range_diff = -1;
+		Node* node_comp = NULL;
+
+		vector<Node *>::iterator it;
+		for(it = components.begin(); it != components.end(); it++) {
+			Node *root = *it;
+			int prenum  = root->get_preorder_number();
+			if (root != NULL && (root->get_edge_pre_start() <= prenum_range.first 
+							&& root->get_edge_pre_end() >= prenum_range.second)){
+				int cur_diff = (prenum_range.first - root->get_edge_pre_start())
+								+ (root->get_edge_pre_end() - prenum_range.second);
+
+				// Check whether it is valid component to attach lower cluster node
+				bool bValid = (cur_diff < range_diff);
+				if(prenum > prenum_range.first){
+					bValid = false;
+				}
+				else{
+					if(root->get_contracted_lc() && root->get_contracted_rc()){
+						Node* contracted_lc = root->get_contracted_lc();
+						if(contracted_lc->get_edge_pre_start() > prenum_range.first 
+							|| contracted_lc->get_edge_pre_end() < prenum_range.second){
+							bValid = false;
+						}
+					}
+					else {
+						bValid = false;
+					}
+				}
+
+				if(range_diff == -1 || bValid){
+					
+					range_diff = cur_diff;
+					node_comp = root;
+				}
+			}
+		}
+		return node_comp;
 	}
 
 	Node* get_best_node_with_prenum_range(int prenum, pair<int, int> prenum_range){
