@@ -431,12 +431,10 @@ class ClusterMergeForest {
             //Handles case where one node is intenal and other is a leaf node
             bool mp1_internal_node = false;
             if(merging_point1->get_contracted_lc() && merging_point1->get_contracted_rc()){
-                merging_point1->undo_contract_sibling_pair();
                 mp1_internal_node = true;
             }
             bool mp2_internal_node = false;
-            if(merging_point2->get_contracted_lc()
-                                 && merging_point2->get_contracted_rc()){
+            if(merging_point2->get_contracted_lc() && merging_point2->get_contracted_rc()){
                 mp2_internal_node = true;
             }
 
