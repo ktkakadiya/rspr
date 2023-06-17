@@ -214,6 +214,11 @@ class ClusterMergeForest {
                     return soln;
                 }
 
+                Node* lower_clstr_parent = cluster_node->parent();
+                if(lower_clstr_parent && !cluster_node->is_contracted()){
+                    lower_clstr_parent->contract_sibling_pair_undoable();
+                }
+
                 soln->set_merging_point(new Node(*cluster_node));
                 soln->set_merging_point_depth(node_depth);
                 vector<Node *>::iterator it;
