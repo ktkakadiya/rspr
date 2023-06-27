@@ -768,6 +768,7 @@ int main(int argc, char *argv[]) {
 					MIN_PERCENT_LGT = atof(arg2);
 			}
 			ALL_MAFS = true;
+			PREFER_CUT_FIRST = true;
 			ALL_MERGED_MAFS = true;
 		}
 		else if (strcmp(arg, "-all_mafs_case") == 0) {
