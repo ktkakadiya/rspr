@@ -244,6 +244,7 @@ int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "2358";
 bool ALL_MERGED_MAFS = true;
+bool PREFER_CUT_B = true;
 
 class ProblemSolution {
 public:
@@ -4181,6 +4182,11 @@ cout << "  ";
 				}
 			}
 */
+			bool prefer_cut_b = false;
+			if (!cut_b_only && PREFER_CUT_B 
+				&& (T2_a->parent()->parent() == T2_c->parent() && T2_c->parent() != NULL)){
+					prefer_cut_b=true;
+			}
 
 			#ifdef DEBUG
 					cout << "Case 3" << endl;
@@ -4475,11 +4481,14 @@ cout << "  ";
 						T2_d = T2_c->get_sibling();
 				}
 
+				if(!prefer_cut_b){
+					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
+						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
+						cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
+						T2_ab, balanced, multi_b1, multi_b2, T2_d, best_k);
 
-				rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
-					singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
-					cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
-					T2_ab, balanced, multi_b1, multi_b2, T2_d, best_k);
+					um.undo_to(undo_state);
+				}
 
 				best_T1 = T1;
 				best_T2 = T2;
@@ -4573,6 +4582,7 @@ cout << "  ";
 					}
 				}
 
+				int af_count = AFs->size();
 				// cut T2_b
 				if ((!CUT_AC_SEPARATE_COMPONENTS || same_component)
 //						&& ((!T2_b->parent()->is_protected()
@@ -4675,19 +4685,31 @@ cout << "  ";
 				delete sibling_pairs;
 				delete singletons;
 				*/
-				rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
-					singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
-					cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
-					multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only, T2_d, lca_depth, best_k);
 
-				/*
-				delete T1;
-				delete T2;
-				delete sibling_pairs;
-				delete singletons;
-				*/
+				bool prefer_b_success = (prefer_cut_b && af_count < AFs->size());
+				if(prefer_b_success){
+					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
+						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
+						cut_a_only, cut_b_only, cut_c_only, path_length, &um, 
+						T2_ab, balanced, multi_b1, multi_b2, T2_d, best_k);
+					um.undo_to(undo_state);
+				}
 
-				um.undo_to(undo_state);
+				if(!prefer_cut_b || prefer_b_success){
+					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
+						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
+						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
+						multi_b1, multi_b2, cut_a_or_merge_ac, cut_ab_only, T2_d, lca_depth, best_k);
+
+					/*
+					delete T1;
+					delete T2;
+					delete sibling_pairs;
+					delete singletons;
+					*/
+
+					um.undo_to(undo_state);
+				}
 
 				//T1 = best_T1;
 				//T2 = best_T2;
@@ -4963,7 +4985,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 }
 
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map, int min_k, int max_k, Forest **out_F1, Forest **out_F2) {
-	bool do_cluster = true;
+	bool do_cluster = false;
 	if (max_k > MAX_SPR)
 		max_k = MAX_SPR;
 	else if (max_k == -1)

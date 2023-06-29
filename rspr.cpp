@@ -769,6 +769,7 @@ int main(int argc, char *argv[]) {
 			}
 			ALL_MAFS = true;
 			ALL_MERGED_MAFS = true;
+			PREFER_CUT_B = true;
 		}
 		else if (strcmp(arg, "-all_mafs_case") == 0) {
 			if (max_args > argc) {
