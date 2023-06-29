@@ -4583,6 +4583,7 @@ cout << "  ";
 				}
 
 				int af_count = AFs->size();
+				bool b_visited = false;
 				// cut T2_b
 				if ((!CUT_AC_SEPARATE_COMPONENTS || same_component)
 //						&& ((!T2_b->parent()->is_protected()
@@ -4654,6 +4655,7 @@ cout << "  ";
 						}
 					}
 
+					b_visited = true;
 					if (CUT_ALL_B) {
 						answer_b =
 							rSPR_branch_and_bound_hlpr(T1, T2, k-1,
@@ -4686,7 +4688,7 @@ cout << "  ";
 				delete singletons;
 				*/
 
-				bool prefer_b_success = (prefer_cut_b && af_count < AFs->size());
+				bool prefer_b_success = (prefer_cut_b && (af_count < AFs->size() || !b_visited));
 				if(prefer_b_success){
 					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
 						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
