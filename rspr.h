@@ -244,7 +244,7 @@ int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "2358";
 bool ALL_MERGED_MAFS = true;
-bool PREFER_CUT_B = true;
+bool PREFER_CUT_B = false;
 
 class ProblemSolution {
 public:
