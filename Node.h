@@ -672,6 +672,9 @@ class Node {
 	bool is_contracted() {
 		return contracted;
 	}
+	bool set_contracted() {
+		contracted = true;
+	}
 
 	void protect_edge() {
 		edge_protected = true;

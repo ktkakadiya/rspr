@@ -243,8 +243,10 @@ int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "2358";
-bool ALL_MERGED_MAFS = true;
+string ALL_MAFS_OPTIMIZATIONS_CASE = "123";
+bool ALL_MERGED_MAFS = false;
 bool PREFER_CUT_B = false;
+bool REPLACE_A_WITH_C = false;
 
 class ProblemSolution {
 public:
@@ -4689,6 +4691,7 @@ cout << "  ";
 				*/
 
 				bool prefer_b_success = (prefer_cut_b && (af_count < AFs->size() || !b_visited));
+				af_count = AFs->size();
 				if(prefer_b_success){
 					rspr_branch_and_bound_cut_a_hlpr(T1, T2, k, sibling_pairs,
 						singletons, AFs, protected_stack, num_ties, T1_c, T2_a, T2_b, T2_c,
@@ -4697,7 +4700,8 @@ cout << "  ";
 					um.undo_to(undo_state);
 				}
 
-				if(!prefer_cut_b || prefer_b_success){
+				bool prefer_a_success = (prefer_cut_b && (af_count < AFs->size()));
+				if(!prefer_cut_b){
 					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
@@ -4711,6 +4715,20 @@ cout << "  ";
 					*/
 
 					um.undo_to(undo_state);
+				}
+				else if(prefer_a_success){
+					int cur_idx = AFs->size() - 1;
+					std::list<pair<Forest,Forest>>::reverse_iterator rit;
+					for (rit = AFs->rbegin(); rit != AFs->rend(); ++rit) {
+						if(cur_idx < af_count)
+							break;
+						Forest curF1 = Forest(rit->first);
+						Forest curF2 = Forest(rit->second);
+						curF1.replace_components(T1_a->get_preorder_number(), T1_c->get_preorder_number());
+						curF2.replace_components(T2_a->get_preorder_number(), T2_c->get_preorder_number());
+						AFs->push_back(make_pair(curF1, curF2));
+						cur_idx--;
+					}
 				}
 
 				//T1 = best_T1;

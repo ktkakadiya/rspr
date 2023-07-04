@@ -353,6 +353,42 @@ class Forest {
 		return NULL;
 	}
 
+	void replace_components(int node_a_prenum, int node_c_prenum){
+		int comp_a_idx = this->get_component_index_with_prenum(node_a_prenum, node_a_prenum);
+		if(comp_a_idx == -1){
+			cout << "Replace component failed 1!" << endl;
+			return;
+		}
+		Node* node_a = components[comp_a_idx];
+
+		Node* node_c = this->get_contracted_node_with_prenum_range(
+								make_pair(node_c_prenum, node_c_prenum));
+		if(!node_c){
+			cout << "Replace component failed 2!" << endl;
+			return;
+		}
+		
+		Node* node_c_parent = node_c->parent();
+		if(node_c_parent){
+			if(!node_c->is_contracted()){
+                node_c_parent->contract_sibling_pair_undoable();
+            }
+			bool is_left = (node_c_parent->get_contracted_lc() == node_c);
+			node_c->cut_parent();
+
+			node_a->set_contracted();
+			if(is_left){
+				node_c_parent->set_contracted_lc(node_a);
+			}
+			else {
+				node_c_parent->set_contracted_rc(node_a);
+			}
+			node_a->set_parent(node_c_parent);
+			components[comp_a_idx] = node_c;
+			//cout << "Replace successful" << endl;
+		}
+	}
+
 	// print the forest
 	void print_components_preorder() {
 		vector<Node *>::iterator it = components.begin();

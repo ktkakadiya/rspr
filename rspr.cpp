@@ -770,12 +770,21 @@ int main(int argc, char *argv[]) {
 			ALL_MAFS = true;
 			ALL_MERGED_MAFS = true;
 			PREFER_CUT_B = true;
+			REPLACE_A_WITH_C = true;
 		}
 		else if (strcmp(arg, "-all_mafs_case") == 0) {
 			if (max_args > argc) {
 				char *arg2 = argv[argc+1];
 				if (arg2[0] != '-') {
 					ALL_MAFS_CASE = arg2;
+				}
+			}
+		}
+		else if (strcmp(arg, "-all_mafs_opti_case") == 0) {
+			if (max_args > argc) {
+				char *arg2 = argv[argc+1];
+				if (arg2[0] != '-') {
+					ALL_MAFS_OPTIMIZATIONS_CASE = arg2;
 				}
 			}
 		}
@@ -857,6 +866,21 @@ int main(int argc, char *argv[]) {
 			}
 		}
 	}
+
+	for (int i = 0; i < ALL_MAFS_OPTIMIZATIONS_CASE.length(); i++) {
+		int cur_case = int(ALL_MAFS_OPTIMIZATIONS_CASE[i]) - 48; 
+		switch (cur_case) {
+			case 1:
+				ALL_MERGED_MAFS = true; break;
+			case 2:
+				PREFER_CUT_B = true; break;
+			case 3:
+				REPLACE_A_WITH_C = true; break;
+			default:
+				break;
+		}
+	}
+
 	PREORDER_SIBLING_PAIRS = true;
 	if (DEFAULT_ALGORITHM) {
 		BB=true;
