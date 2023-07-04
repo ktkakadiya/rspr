@@ -672,7 +672,7 @@ class Node {
 	bool is_contracted() {
 		return contracted;
 	}
-	bool set_contracted() {
+	void set_contracted() {
 		contracted = true;
 	}
 
