@@ -354,6 +354,11 @@ class Forest {
 	}
 
 	void replace_components(int node_a_prenum, int node_c_prenum){
+		#ifdef DEBUG
+		cout << "Replace starting" << endl;
+		this->print_components();
+		#endif
+
 		int comp_a_idx = this->get_component_index_with_prenum(node_a_prenum, node_a_prenum);
 		if(comp_a_idx == -1){
 			cout << "Replace component failed 1!" << endl;
@@ -375,17 +380,32 @@ class Forest {
             }
 			bool is_left = (node_c_parent->get_contracted_lc() == node_c);
 			node_c->cut_parent();
+			node_c->set_edge_pre_start(node_c->get_preorder_number());
 
 			node_a->set_contracted();
-			if(is_left){
+			Node* other_child = node_c_parent->get_contracted_lc();
+			if(other_child == node_c){
+				other_child = node_c_parent->get_contracted_rc();
+			}
+
+			if(node_a_prenum < other_child->get_preorder_number()){
 				node_c_parent->set_contracted_lc(node_a);
+				node_c_parent->set_contracted_rc(other_child);
+				other_child->set_edge_pre_start(node_a->get_edge_pre_end()+1);	
 			}
-			else {
+			else{
 				node_c_parent->set_contracted_rc(node_a);
+				node_c_parent->set_contracted_lc(other_child);
+				other_child->set_edge_pre_end(node_a->get_edge_pre_start()-1);	
 			}
+
 			node_a->set_parent(node_c_parent);
 			components[comp_a_idx] = node_c;
-			//cout << "Replace successful" << endl;
+
+			#ifdef DEBUG
+			cout << "Replace successful" << endl;
+			this->print_components();
+			#endif
 		}
 	}
 

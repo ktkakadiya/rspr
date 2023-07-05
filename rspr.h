@@ -243,7 +243,7 @@ int CLUSTER_TUNE = -1;
 int SIMPLE_UNROOTED_LEAF = 0;
 bool SHOW_PERCENT_LGT_EVENTS = false;
 string ALL_MAFS_CASE = "2358";
-string ALL_MAFS_OPTIMIZATIONS_CASE = "123";
+string ALL_MAFS_OPTIMIZATIONS_CASE = "23";
 bool ALL_MERGED_MAFS = false;
 bool PREFER_CUT_B = false;
 bool REPLACE_A_WITH_C = false;
@@ -4700,8 +4700,8 @@ cout << "  ";
 					um.undo_to(undo_state);
 				}
 
-				bool prefer_a_success = (prefer_cut_b && (af_count < AFs->size()));
-				if(!prefer_cut_b){
+				bool prefer_a_success = (af_count < AFs->size());
+				if(!prefer_cut_b || !REPLACE_A_WITH_C){
 					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
@@ -4717,6 +4717,7 @@ cout << "  ";
 					um.undo_to(undo_state);
 				}
 				else if(prefer_a_success){
+					list<pair<Forest,Forest>> newAFs = list<pair<Forest,Forest>>();
 					int cur_idx = AFs->size() - 1;
 					std::list<pair<Forest,Forest>>::reverse_iterator rit;
 					for (rit = AFs->rbegin(); rit != AFs->rend(); ++rit) {
@@ -4726,8 +4727,12 @@ cout << "  ";
 						Forest curF2 = Forest(rit->second);
 						curF1.replace_components(T1_a->get_preorder_number(), T1_c->get_preorder_number());
 						curF2.replace_components(T2_a->get_preorder_number(), T2_c->get_preorder_number());
-						AFs->push_back(make_pair(curF1, curF2));
+						newAFs.push_back(make_pair(curF1, curF2));
 						cur_idx--;
+					}
+					std::list<pair<Forest,Forest>>::iterator fit;
+					for (fit = newAFs.begin(); fit != newAFs.end(); ++fit) {
+						AFs->push_back(*fit);
 					}
 				}
 
