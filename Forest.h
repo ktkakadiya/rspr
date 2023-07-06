@@ -376,11 +376,10 @@ class Forest {
 		Node* node_c_parent = node_c->parent();
 		if(node_c_parent){
 			if(!node_c->is_contracted()){
-                node_c_parent->contract_sibling_pair_undoable();
+                node_c->contract_node_path();
             }
 			bool is_left = (node_c_parent->get_contracted_lc() == node_c);
-			node_c->cut_parent();
-			node_c->set_edge_pre_start(node_c->get_preorder_number());
+			node_c->fix_pre_order_range();
 
 			node_a->set_contracted();
 			Node* other_child = node_c_parent->get_contracted_lc();
@@ -399,7 +398,6 @@ class Forest {
 				other_child->set_edge_pre_end(node_a->get_edge_pre_start()-1);	
 			}
 
-			node_a->set_parent(node_c_parent);
 			components[comp_a_idx] = node_c;
 
 			#ifdef DEBUG

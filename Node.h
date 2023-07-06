@@ -579,6 +579,35 @@ class Node {
 		return this;
 	}
 
+	void fix_pre_order_range(){
+		this->set_edge_pre_start(this->get_preorder_number());
+		if(this->is_leaf()){
+			if(this->get_contracted_rc() != NULL){
+				this->set_edge_pre_end(this->get_contracted_rc()->get_edge_pre_end());
+			}
+			else{
+				this->set_edge_pre_end(this->get_preorder_number());
+			}
+		}
+		else{
+			Node* rchild = this->get_children().back();
+			if(rchild){
+				this->set_edge_pre_end(rchild->get_edge_pre_end());
+			}
+		}
+	}
+
+	// Contract node path upto the root node
+	void contract_node_path(){
+		if(!this->is_contracted()){
+			Node* parent = this->parent();
+			if(parent){
+				parent->contract_sibling_pair_undoable();
+				parent->contract_node_path();
+			}
+		}
+	}
+
 	// potentially dangerous
 	Node *set_parent(Node *n) {
 		p = n;
