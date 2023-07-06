@@ -4701,7 +4701,7 @@ cout << "  ";
 				}
 
 				bool prefer_a_success = (af_count < AFs->size());
-				if(!prefer_cut_b || !REPLACE_A_WITH_C){
+				if(!prefer_cut_b || !REPLACE_A_WITH_C || (T2_a->is_protected())){
 					rspr_branch_and_bound_cut_c_hlpr(T1, T2, k, sibling_pairs, 
 						singletons, AFs, protected_stack, num_ties, T1_a, T2_a, T2_b, T2_c,
 						cut_a_only, cut_b_only, cut_c_only, path_length, &um, balanced, 
