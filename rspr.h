@@ -5010,7 +5010,7 @@ int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, ma
 }
 
 int rSPR_branch_and_bound_simple_clustering(Node *T1, Node *T2, bool verbose, map<string, int> *label_map, map<int, string> *reverse_label_map, int min_k, int max_k, Forest **out_F1, Forest **out_F2) {
-	bool do_cluster = true;
+	bool do_cluster = false;
 	if (max_k > MAX_SPR)
 		max_k = MAX_SPR;
 	else if (max_k == -1)
